@@ -1,7 +1,7 @@
 {
   "name": "@dinkuskit/coupons",
   "version": "0.0.0",
-  "description": "Advanced promotions for AICommerce on EmDash",
+  "description": "Advanced promotions for DinkusKit Commerce on EmDash",
   "type": "module",
   "private": true,
   "license": "MIT",

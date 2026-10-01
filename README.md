@@ -1,35 +1,32 @@
 # coupons
 
-`* * *`
+`@dinkuskit/coupons` is a private, public design stub for advanced promotions
+on DinkusKit Commerce and EmDash. This slice records an agreed v1
+documentation handoff; it does not add a runtime, evaluator, SDK, provider,
+secret, or production configuration.
 
-Advanced promotions for AICommerce on EmDash: typed conditions and effects,
-BOGO and rewards, schedules, limits, simulation, reporting, and Woo migration.
-Planned package: `@dinkuskit/coupons`.
+DinkusKit Commerce remains the sole owner of the basic-coupon evaluator,
+canonical pricing, cart, checkout, order, money, tax, refund, and basic-coupon
+admin contracts. Coupons never prices a cart in parallel or trusts browser
+prices/totals.
 
-AICommerce will ship useful basic coupons for new stores. This extension adds
-advanced capabilities to the same deterministic promotion pipeline and
-canonical promotion records. It never starts a second cart-pricing engine.
+The confirmed handoff covers one code per order, percentage or fixed total
+discounts, all merchandise or selected products, sale-item inclusion defaulting
+to exclude, eligible-merchandise minimum spend before the coupon, percentage
+maximum discount, global redemption caps, payment reservation/consume/release
+and unknown-outcome reconciliation, frozen accepted discounts for existing
+payment sessions, and new-session evaluation against current rules.
 
-## Planned boundary
+See:
 
-- condition groups with explicit AND/OR semantics;
-- BOGO, reward products, schedules, stacking, and advanced usage limits;
-- deterministic line, shipping, tax, and refund allocations;
-- provisional redemption claims with commit, release, and reversal receipts;
-- simulation traces, reporting, and Advanced Coupons migration;
-- the same audited application services behind EmDash admin, REST, and MCP.
+- [Basic coupon boundary](docs/basic-v1-handoff.md)
+- [Integration request and acceptance matrix](docs/v1-integration-request.md)
 
-Store credit, gift cards, cashback, loyalty, and referrals are separate
-money/marketing domains rather than coupon effects.
+Advanced stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
+store credit, gift cards, cashback, loyalty, and referrals remain out of scope.
+Rounding/allocation, zero-total behavior, and code normalization are questions
+for the owning contract; this repository invents no policy.
 
-## Status
-
-Public design stub. There is no installable plugin or published npm package yet.
-The package manifest is private at `0.0.0` to prevent accidental publication.
-
-Part of [Dinkus](https://github.com/dinkuskit): blocks, AICommerce, commerce
-extensions, and templates for [EmDash](https://github.com/emdash-cms/emdash)
-sites. Commerce extensions depend on AICommerce; blocks and templates remain
-independently usable.
-
-Under construction, dogfooding in the open. MIT.
+The package remains private at `0.0.0`. The Commerce commit
+`8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a historical read-only
+reference, not a dependency or current SDK claim.
