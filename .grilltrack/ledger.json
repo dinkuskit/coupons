@@ -1494,10 +1494,54 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-10-01T01:49:58+00:00",
+          "choice": "Document concise proposed semantic interfaces and an acceptance matrix for Commerce, Payments transport, and Template UI; label every proposal as awaiting owner acceptance, make no SDK claim, use the PR6 pinned historical Commerce source only as a historical reference, and request an immutable baseline plus typed acceptance from the existing checkout owner.",
+          "from": "verified",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "adjudicated review requires a fix",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-10-01T01:50:25+00:00",
+          "choice": "Document concise proposed semantic interfaces and an acceptance matrix for Commerce, Payments transport, and Template UI; label every proposal as awaiting owner acceptance, make no SDK claim, use the PR6 pinned historical Commerce source only as a historical reference, and request an immutable baseline plus typed acceptance from the existing checkout owner.",
+          "from": "needs_reverification",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "bounded implementation recorded",
+          "repair_required": true,
+          "review_classifications": [
+            "required_fix"
+          ],
+          "review_ref": ".grilltrack/proof/AGREED-V1-REVIEW.md",
+          "review_result": "findings",
+          "review_source_identity": "git:7c97084e622184b7c7831968de86935ba7fbf4aa",
+          "to": "implemented",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-10-01T01:50:25+00:00",
+          "choice": "Document concise proposed semantic interfaces and an acceptance matrix for Commerce, Payments transport, and Template UI; label every proposal as awaiting owner acceptance, make no SDK claim, use the PR6 pinned historical Commerce source only as a historical reference, and request an immutable baseline plus typed acceptance from the existing checkout owner.",
+          "from": "implemented",
+          "implementation_ref": ".grilltrack/proof/AGREED-V1-REVIEW.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "agreed-v1-integration",
-      "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+      "implementation_ref": ".grilltrack/proof/AGREED-V1-REVIEW.md",
       "question": "What is requested from neighboring owners?",
       "rationale": "Documentation handoff only; no runtime or parallel contract is introduced.",
       "repair_required": false,
@@ -1509,6 +1553,15 @@
           "result": "clean",
           "reviewed_at": "2026-10-01T01:39:55+00:00",
           "source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6"
+        },
+        {
+          "classifications": [
+            "required_fix"
+          ],
+          "ref": ".grilltrack/proof/AGREED-V1-REVIEW.md",
+          "result": "findings",
+          "reviewed_at": "2026-10-01T01:49:58+00:00",
+          "source_identity": "git:7c97084e622184b7c7831968de86935ba7fbf4aa"
         }
       ],
       "review_ref": null,
@@ -1516,8 +1569,8 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-01T01:42:53+00:00",
-      "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+      "updated_at": "2026-10-01T01:50:25+00:00",
+      "verification_ref": ".grilltrack/proof/AGREED-V1-REVIEW.md"
     },
     {
       "baseline_ref": "git:4538e8c030750de98b4e857ef6492c13527aed4a",
@@ -1610,5 +1663,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-10-01T01:44:44+00:00"
+  "updated_at": "2026-10-01T01:50:25+00:00"
 }

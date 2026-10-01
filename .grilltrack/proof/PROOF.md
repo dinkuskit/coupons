@@ -1,4 +1,15 @@
-# GrillTrack Verification Proof: Coupons v1 Boundary Handoff
+# Historical PR6 Evidence: Coupons v1 Boundary Handoff
+
+> **Superseded historical artifact.** This proof records the earlier PR6
+> whole-order/storewide scope and its then-current refund semantics. It is
+> retained for history only and must not be used as evidence for the current
+> agreed v1 scope, which includes all merchandise or selected products and
+> requires the current payment-session and refund requirements. Use
+> [`AGREED-V1-PROOF.md`](AGREED-V1-PROOF.md) for the agreed v1 proof and
+> [`../../docs/basic-v1-handoff.md`](../../docs/basic-v1-handoff.md) plus
+> [`../../docs/v1-integration-request.md`](../../docs/v1-integration-request.md)
+> for the current requirements and proposed owner contracts. A fresh official
+> review of the repaired documentation remains pending.
 
 - **Track ID**: `gt-20260930183102-25d567`
 - **Domain**: `commerce-v1-coupons-boundary`

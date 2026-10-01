@@ -1,4 +1,14 @@
-# Review & Adjudication: Coupons v1 Boundary Handoff Documentation
+# Historical PR6 Review & Adjudication: Coupons v1 Boundary Handoff Documentation
+
+> **Superseded historical artifact.** This review belongs to the earlier PR6
+> whole-order/storewide evidence and its then-current refund semantics. Retain
+> it for history, but do not treat it as review of the current agreed v1
+> scope. The current requirements are in
+> [`../../docs/basic-v1-handoff.md`](../../docs/basic-v1-handoff.md) and
+> [`../../docs/v1-integration-request.md`](../../docs/v1-integration-request.md);
+> the current proof is
+> [`AGREED-V1-PROOF.md`](AGREED-V1-PROOF.md). A fresh official review remains
+> pending after the documentation repair.
 
 - **Source Identity**: `sha256:96e85995505f732976b00a0492e95396cb6026e3141514ea66484b99cbf21a85`
 - **Target**: `docs/basic-v1-handoff.md`
