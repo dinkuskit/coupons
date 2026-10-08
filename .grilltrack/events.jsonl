@@ -102,3 +102,8 @@
 {"action": "decision_reviewed", "at": "2026-10-01T01:49:58+00:00", "data": {"classifications": ["required_fix"], "decision_id": "agreed-v1-integration", "ref": ".grilltrack/proof/AGREED-V1-REVIEW.md", "result": "findings", "reviewed_at": "2026-10-01T01:49:58+00:00", "source_identity": "git:7c97084e622184b7c7831968de86935ba7fbf4aa"}, "event_id": "e0c10746-b28e-43aa-a5fb-a9ea0415f62c"}
 {"action": "decision_implemented", "at": "2026-10-01T01:50:25+00:00", "data": {"decision_id": "agreed-v1-integration"}, "event_id": "d2adf21c-a073-488e-8992-f99805e1a503"}
 {"action": "decision_verified", "at": "2026-10-01T01:50:25+00:00", "data": {"decision_id": "agreed-v1-integration"}, "event_id": "5656e249-ae51-454c-a609-7bb3a2732818"}
+{"action": "focus_started", "at": "2026-10-08T21:30:18+00:00", "data": {"cadence": "sequential", "domain": "hosted-coupon-service"}, "event_id": "b228e8e4-b83e-41cc-bc65-b19df618b08f"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:18+00:00", "data": {"decision_id": "hosted-coupon-service"}, "event_id": "da275233-a12b-4c87-9bb8-193082a4ba4a"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:19+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "7f0046c1-6b94-47b7-9194-ea641dde8ff8"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:19+00:00", "data": {"decision_id": "coupon-service-http-contract"}, "event_id": "ed4b48ea-3390-4cba-9802-d9cc1afbeea4"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:19+00:00", "data": {"decision_id": "coupon-admin-registry-plugin"}, "event_id": "e77843be-5796-4496-9831-996c7495d807"}
