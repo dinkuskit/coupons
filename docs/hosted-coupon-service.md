@@ -216,9 +216,11 @@ bounded reader it uses for Payments.
 - An HTTP `CheckoutCouponPort` that resolves prices from Commerce's catalog,
   sends priced lines, and maps the endpoints above. It must keep Commerce's
   Registry backend under 128 KiB, measured with the official packager.
-- The Registry manifest declares `network:request` with the coupons host in
-  `allowedHosts`. That changes Commerce's consent screen, so it ships with a
-  version bump.
+- The Registry manifest declares `network:request` with `coupons.dinkuskit.com`
+  and `payments.dinkuskit.com` in `allowedHosts`. Commerce's Registry manifest
+  asks for no network access today, so Registry stores cannot reach Payments
+  yet either; both hosts land together. That changes Commerce's consent
+  screen, so it ships with a version bump.
 - Settings for the coupons origin and a `coupons:checkout` credential, stored
   the way the Payments credential is.
 
