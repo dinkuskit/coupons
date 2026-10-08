@@ -238,3 +238,25 @@ bounded reader it uses for Payments.
   coupon with a very large cap needs attempts split out of the record before
   it reaches Durable Object value limits; the service will measure this before
   release.
+
+## References
+
+- EmDash, [Capabilities & Security](https://docs.emdashcms.com/plugins/creating-plugins/capabilities/):
+  `network:request` reaches only `allowedHosts`, the consent dialog names
+  declared hosts, unrestricted access is meant for operator-supplied
+  destinations only, and one plugin cannot read another plugin's storage or KV.
+- EmDash, [Publishing](https://docs.emdashcms.com/plugins/creating-plugins/publishing/):
+  Registry publishing is sandboxed-only, with files capped at 128 KB each.
+- EmDash, [Choosing a Plugin Format](https://docs.emdashcms.com/plugins/creating-plugins/choosing-a-format/):
+  sandboxed plugins install in one click from the admin Registry; native
+  plugins need an npm install, a config edit and a redeploy.
+- Cloudflare, [Rules of Durable Objects](https://developers.cloudflare.com/durable-objects/best-practices/rules-of-durable-objects/):
+  one Durable Object per unit that needs coordination, with serialized
+  operations for booking or inventory-style limits, about 1,000 requests per
+  second per object.
+- Cloudflare, [Durable Objects limits](https://developers.cloudflare.com/durable-objects/platform/limits/):
+  2 MB per stored value or row and 10 GB per object on Workers Paid, which is
+  what the storage-growth question above is measured against.
+- Cloudflare, [Workers Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/):
+  how `coupons.dinkuskit.com` attaches to the Worker, with DNS and certificates
+  created by Cloudflare.
