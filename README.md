@@ -7,7 +7,8 @@ EmDash. Commerce's Registry build no longer carries coupons
 Registry's 128 KiB per-file limit, and EmDash 1.2 has no way for one plugin to
 call another on the same site. So coupons come back as a Cloudflare Worker
 with one Durable Object per store, called by Commerce checkout over HTTPS, plus
-a small Coupons admin Registry plugin. Nothing is implemented yet.
+a small Coupons admin Registry plugin. The service is a tested scaffold and is
+not deployed yet; the admin plugin is not built yet.
 
 Commerce keeps setting prices. The service evaluates a code only against lines
 Commerce has already priced, never against browser prices or totals, and uses
@@ -34,6 +35,21 @@ for the owning contract; this repository invents no policy.
 The package remains private at `0.0.0`. The Commerce commit
 `8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a historical read-only
 reference, not a dependency or current SDK claim.
+
+## Development
+
+```sh
+git submodule update --init   # Commerce's coupon core, pinned by commit
+npm ci
+npm run check:pin             # submodule matches package.json commercePin
+npm run typecheck
+npm run test:runtime          # Worker and Durable Object in local workerd
+npm run build                 # wrangler dry run
+```
+
+`src/worker.ts` routes `/v1/stores/{siteId}/...` and checks the store's
+token; `src/store.ts` is the per-store Durable Object that runs Commerce's
+coupon core over its own SQLite storage. Nothing is deployed yet.
 
 ## Install type
 

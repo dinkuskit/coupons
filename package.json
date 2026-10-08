@@ -1,12 +1,32 @@
 {
   "name": "@dinkuskit/coupons",
   "version": "0.0.0",
-  "description": "Advanced promotions for DinkusKit Commerce on EmDash",
+  "description": "Hosted DinkusKit coupon service for Registry stores running DinkusKit Commerce on EmDash",
   "type": "module",
   "private": true,
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dinkuskit/coupons.git"
+  },
+  "dinkuskit": {
+    "commercePin": "eafd3e83120c70120ccbe0a8684770b2739a4edf"
+  },
+  "scripts": {
+    "test": "node --test tests/workflows/*.test.mjs",
+    "test:runtime": "vitest run",
+    "typecheck": "node scripts/typecheck.mjs",
+    "check:pin": "node scripts/check-commerce-pin.mjs",
+    "build": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "jose": "6.2.12"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.3.3",
+    "@cloudflare/workers-types": "5.20260929.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.11",
+    "wrangler": "4.144.0"
   }
 }

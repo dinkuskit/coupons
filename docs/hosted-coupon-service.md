@@ -3,8 +3,9 @@
 **Status:** accepted by the project owner on 2026-10-08. The GrillTrack
 decisions `hosted-coupon-service`, `single-coupon-evaluator`,
 `coupon-service-http-contract` and `coupon-admin-registry-plugin` are locked
-and supersede `commerce-money-engine-ownership`. The service itself is not
-implemented or deployed yet.
+and supersede `commerce-money-engine-ownership`. The service is a scaffold in
+`src/` with runtime tests; it is not deployed, and the admin plugin and
+Commerce client are not built yet.
 
 ## Why this exists
 
