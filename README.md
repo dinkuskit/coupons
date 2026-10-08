@@ -23,8 +23,8 @@ payment sessions, and new-session evaluation against current rules.
 See:
 
 - [Hosted coupon service and HTTP contract](docs/hosted-coupon-service.md)
-- [Basic coupon boundary](docs/basic-v1-handoff.md)
-- [Integration request and acceptance matrix](docs/v1-integration-request.md)
+- [Agreed v1 coupon semantics and acceptance matrix](docs/basic-v1-handoff.md)
+- [Earlier integration request, superseded](docs/v1-integration-request.md)
 
 Advanced stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
 store credit, gift cards, cashback, loyalty, and referrals remain out of scope.

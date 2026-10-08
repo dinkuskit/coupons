@@ -1,9 +1,16 @@
 # v1 integration request
 
-**Status: proposed; awaiting owner acceptance.** This document requests typed
-semantic contracts. It does not describe an implemented SDK or runtime.
+**Status: superseded on 2026-10-08** by
+[hosted-coupon-service.md](hosted-coupon-service.md), which the project owner
+accepted. This request is kept for history. Its ownership boundary, proposed
+ports and owner acceptance matrix no longer apply: coupon records, the cap
+ledger, redemption attempts and coupon admin moved to the hosted coupon
+service, with Commerce keeping prices, cart, checkout, order, money, tax and
+refunds. The required lifecycle matrix below still describes required
+behavior; where it says "Commerce reservation", the reservation is now made by
+the coupon service at Commerce's request, before any payable provider session.
 
-## Ownership boundary
+## Ownership boundary (superseded)
 
 Commerce owns coupon evaluation, canonical quote/order construction, and the
 durable atomic global-cap ledger. Payments only transports the Commerce-accepted
@@ -12,7 +19,7 @@ shopper-facing apply/remove/display. EmDash merchant admin is owned by
 Commerce, not Template. No browser amount, payment session, or provider event
 may perform coupon evaluation, build an order, or count redemptions.
 
-## Proposed semantic ports
+## Proposed semantic ports (superseded)
 
 These are review shapes, not typed contracts to implement. Commerce, Payments,
 and Template owners must accept or replace them against an immutable baseline.
@@ -102,7 +109,7 @@ Commerce persists the frozen discounted order. Payments carries only the exact
 accepted amount and verified outcomes; it never counts usage, constructs an
 order, or evaluates a coupon.
 
-## Acceptance matrix by owner
+## Acceptance matrix by owner (superseded)
 
 | Owner | Requested acceptance | Evidence required |
 | --- | --- | --- |
