@@ -129,12 +129,17 @@ as in Commerce. A priced line is:
 
 ```json
 { "productId": "prod_1", "quantity": 2,
-  "unitPrice": { "currency": "USD", "minor": "1500" }, "onSale": false }
+  "regular": { "currency": "USD", "minor": "2000" },
+  "sale": { "currency": "USD", "minor": "1500" } }
 ```
 
-`unitPrice` is what the shopper pays per unit after any sale price, resolved
-by Commerce from its own catalog. `onSale` drives the coupon's sale-item rule.
-Shipping and tax are never lines.
+`regular` and the optional `sale` are Commerce's own catalog price record for
+the product, read by Commerce at checkout. The evaluator applies the same rules
+it applies inside Commerce: the shopper pays `sale` when present, and a line
+with a sale price is a sale item for the coupon's sale-item rule. `sale` must
+be lower than `regular`. A quote takes 1 to 100 lines, and a product that
+appears twice must carry the same price both times. Shipping and tax are never
+lines.
 
 ### Checkout endpoints (`coupons:checkout`)
 
@@ -158,9 +163,12 @@ release it, and `unknown` keeps it pending until a later reconciliation.
 Rules the service enforces:
 
 - The service uses its own clock for "now". Commerce does not send it.
-- `quote` stores the issued quote under `quoteId`. `reserve` accepts only a
-  quote byte-for-byte equal to one the service issued for that store, so a
-  quote cannot be edited between the two calls.
+- `quote` stores the issued quote under `quoteId` for 24 hours. A new
+  attempt (`reserve` or `release-unstarted`) accepts only a quote equal, field
+  for field, to one the service issued for that store and coupon, so a quote
+  cannot be edited between the two calls (`409 QUOTE_NOT_ISSUED`). Retries of
+  an attempt that already exists skip this check and rely on the attempt's
+  frozen quote.
 - Every lifecycle call is idempotent on `attemptId`. Retrying with the same
   body returns the same attempt; a different body for the same attempt is a
   `409 CONFLICTING_ATTEMPT`.
@@ -175,11 +183,14 @@ Rules the service enforces:
 | `GET /coupons` | `list` |
 | `POST /coupons` | `create` |
 | `GET /coupons/{couponId}` | `get` |
-| `PUT /coupons/{couponId}` with `expectedRevision` | `edit` |
+| `PUT /coupons/{couponId}` with `{ expectedRevision, ...changes }` | `edit` |
 | `POST /coupons/{couponId}/disable` with `expectedRevision` | `disable` |
 | `GET /coupons/{couponId}/counts` | `getCounts` |
 
-Bodies are the inputs Commerce's `CouponAdminPort` already validates.
+Bodies are the inputs Commerce's `CouponAdminPort` already validates: create
+takes `{ code, globalCap, rule, disabled? }`, and edit changes any of `code`,
+`globalCap`, `disabled` and `rule`. A code already used by another coupon in
+the store is `409 CODE_IN_USE`.
 
 ### Errors
 
@@ -188,15 +199,17 @@ code taken from Commerce's own error types.
 
 | Status | Codes |
 | --- | --- |
-| 400 | `INVALID_INPUT` |
+| 400 | `INVALID_INPUT` (including unexpected fields, such as a browser total) |
 | 401 / 403 | `UNAUTHENTICATED`, `FORBIDDEN` (bad token, wrong `site_id` or scope) |
-| 404 | `NOT_FOUND` (unknown code, coupon or attempt) |
-| 409 | `CAPACITY_EXHAUSTED`, `CONFLICTING_ATTEMPT`, `TERMINAL_CONFLICT`, `CONTENTION` |
-| 422 | `NOT_APPLICABLE` (inactive, disabled, minimum not met, no eligible items) |
-| 500 | `CORRUPTED_RECORD`, `STORAGE_UNAVAILABLE` |
+| 404 | `NOT_FOUND` (unknown code, coupon, attempt or path), `UNKNOWN_ATTEMPT` |
+| 405 | `METHOD_NOT_ALLOWED` |
+| 409 | `CAPACITY_EXHAUSTED`, `CONFLICTING_ATTEMPT`, `TERMINAL_CONFLICT`, `CONTENTION`, `QUOTE_NOT_ISSUED`, `REVISION_CONFLICT`, `CODE_IN_USE` |
+| 413 | `BODY_TOO_LARGE` (request bodies over 64 KiB) |
+| 422 | `NOT_APPLICABLE` (inactive, disabled, minimum not met) |
+| 500 | `CORRUPTED_RECORD`, `STORAGE_UNAVAILABLE`, `INTERNAL` |
+| 503 | `NOT_CONFIGURED` (token issuer settings missing) |
 
-Response bodies are capped at 64 KiB, and Commerce reads them with the same
-bounded reader it uses for Payments.
+Commerce reads responses with the same bounded reader it uses for Payments.
 
 ### When the service is down
 
