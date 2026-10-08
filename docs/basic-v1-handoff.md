@@ -3,11 +3,16 @@
 **Status:** documentation-only requirements handoff. These are confirmed
 semantic requirements, not an implemented Commerce or Coupons runtime.
 
-**Owners:** DinkusKit Commerce owns the evaluator, canonical promotion model,
-cart, checkout, order, money, tax, refund, and basic-coupon admin. Payments
-owns transport and payment outcomes. Templates own shopper presentation.
-Coupons records the advanced-extension boundary and requests typed acceptance;
-it does not become a second money writer.
+**Owners (updated 2026-10-08):** the ownership in the first version of this
+handoff is superseded by [hosted-coupon-service.md](hosted-coupon-service.md).
+The confirmed semantics and acceptance matrix below still define the v1 feature
+set. For Registry stores, coupon records, the global-cap ledger, redemption
+attempts and coupon admin live in the hosted coupon service in this repository,
+which runs Commerce's own evaluator pinned by commit. DinkusKit Commerce owns
+prices, cart, checkout, order, money, tax and refunds, and sends the service
+lines it has already priced. Payments owns transport and payment outcomes.
+Templates own shopper presentation. The coupon service never writes an order or
+payment amount.
 
 **Historical reference:** the PR6 source snapshot
 [`8a04c0b16b381b89531c88d1a655aad6c0c461c3`](https://github.com/dinkuskit/commerce/tree/8a04c0b16b381b89531c88d1a655aad6c0c461c3)
@@ -65,13 +70,14 @@ invented by this repository.
 | Duplicate settlement/retry | Repeated success, failure, or cancellation is idempotent; it cannot double consume or release. |
 | Out-of-order stale event | A stale provider event cannot alter the current attempt or release a consumed slot. |
 | Invalid browser total | Browser-supplied totals are ignored or rejected; only the frozen accepted total is payable. |
-| Forbidden admin access | Non-Commerce admin access is rejected and leaves coupon, rule, and cap state unchanged. |
+| Forbidden admin access | Admin calls without the store's `coupons:admin` token are rejected and leave coupon, rule, and cap state unchanged. |
 | Session freeze | Edits, disablement, or expiry do not change an accepted discount in an existing still-valid payment session; a new session evaluates current rules. |
 | Failure/unknown | Evaluation or processor failure, timeout, or accepted-total mismatch fails closed with no silent full-price charge or paid order; unknown remains pending until reconciliation and a timer alone cannot release it. |
 | Timezone boundary | Start/end inclusivity and timezone representation remain an explicit owner question. |
 | Order/refund | Payment and persisted order retain the accepted amount; refund behavior is verified by the owning order/payment flow, and refunds do not restore redemption automatically. |
 | Admin/shopper | Admin lifecycle, explicit time zones, counts, apply, and remove are available through owner-accepted interfaces. |
 
-See [`v1-integration-request.md`](v1-integration-request.md) for proposed
-interfaces and the owner acceptance matrix. All proposals there await owner
-acceptance.
+The HTTP contract that implements these semantics is in
+[`hosted-coupon-service.md`](hosted-coupon-service.md).
+[`v1-integration-request.md`](v1-integration-request.md) is the earlier
+request it replaces, kept for history.

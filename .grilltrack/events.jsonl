@@ -102,3 +102,24 @@
 {"action": "decision_reviewed", "at": "2026-10-01T01:49:58+00:00", "data": {"classifications": ["required_fix"], "decision_id": "agreed-v1-integration", "ref": ".grilltrack/proof/AGREED-V1-REVIEW.md", "result": "findings", "reviewed_at": "2026-10-01T01:49:58+00:00", "source_identity": "git:7c97084e622184b7c7831968de86935ba7fbf4aa"}, "event_id": "e0c10746-b28e-43aa-a5fb-a9ea0415f62c"}
 {"action": "decision_implemented", "at": "2026-10-01T01:50:25+00:00", "data": {"decision_id": "agreed-v1-integration"}, "event_id": "d2adf21c-a073-488e-8992-f99805e1a503"}
 {"action": "decision_verified", "at": "2026-10-01T01:50:25+00:00", "data": {"decision_id": "agreed-v1-integration"}, "event_id": "5656e249-ae51-454c-a609-7bb3a2732818"}
+{"action": "focus_started", "at": "2026-10-08T21:30:18+00:00", "data": {"cadence": "sequential", "domain": "hosted-coupon-service"}, "event_id": "b228e8e4-b83e-41cc-bc65-b19df618b08f"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:18+00:00", "data": {"decision_id": "hosted-coupon-service"}, "event_id": "da275233-a12b-4c87-9bb8-193082a4ba4a"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:19+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "7f0046c1-6b94-47b7-9194-ea641dde8ff8"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:19+00:00", "data": {"decision_id": "coupon-service-http-contract"}, "event_id": "ed4b48ea-3390-4cba-9802-d9cc1afbeea4"}
+{"action": "decision_proposed", "at": "2026-10-08T21:30:19+00:00", "data": {"decision_id": "coupon-admin-registry-plugin"}, "event_id": "e77843be-5796-4496-9831-996c7495d807"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-08T22:49:52+00:00", "data": {"summary": "Ronald accepted the hosted coupon service design in coupons#12 on the thread's decision card (2026-10-08): hosted Worker plus Durable Object per store, one pinned Commerce evaluator, HTTP contract v1, Coupons admin Registry plugin."}, "event_id": "60bd4bde-d5de-4f43-a6c9-35c810298612"}
+{"action": "decision_locked", "at": "2026-10-08T22:49:53+00:00", "data": {"decision_id": "hosted-coupon-service"}, "event_id": "91c2cac1-0380-4bab-b5fe-572154217f37"}
+{"action": "decision_locked", "at": "2026-10-08T22:49:53+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "46510373-7026-4290-a287-646acb3a1112"}
+{"action": "decision_locked", "at": "2026-10-08T22:49:53+00:00", "data": {"decision_id": "coupon-service-http-contract"}, "event_id": "85c45ca7-c8a6-4f20-bd0c-17cf17b8dce4"}
+{"action": "decision_locked", "at": "2026-10-08T22:49:53+00:00", "data": {"decision_id": "coupon-admin-registry-plugin"}, "event_id": "f698c5fb-1582-407f-bea9-6c7468d223f2"}
+{"action": "decision_superseded", "at": "2026-10-08T22:49:53+00:00", "data": {"affected": ["checkout-total-preservation", "hosted-coupon-service", "single-coupon-evaluator", "coupon-service-http-contract", "coupon-admin-registry-plugin"], "decision_id": "commerce-money-engine-ownership", "replacement_id": "hosted-coupon-service"}, "event_id": "0ece88bf-14c5-4586-a8a7-4741762dc939"}
+{"action": "decision_implemented", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "checkout-total-preservation"}, "event_id": "bab32be9-9223-46ef-950a-1124731074ac"}
+{"action": "decision_verified", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "checkout-total-preservation"}, "event_id": "86673169-229f-4dac-9a32-0f7861c0d636"}
+{"action": "decision_implemented", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "hosted-coupon-service"}, "event_id": "402e156a-22e4-40c5-b391-aacc49234117"}
+{"action": "decision_verified", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "hosted-coupon-service"}, "event_id": "fb3ea213-8ddc-4fee-9ae2-228fe3ee5c46"}
+{"action": "decision_implemented", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "47b6e0e2-b5d9-4782-9ddd-39ebdfd0a40a"}
+{"action": "decision_verified", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "c233e75f-c51c-4883-8010-b39d58a66148"}
+{"action": "decision_implemented", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "coupon-service-http-contract"}, "event_id": "c893ccbb-1378-4502-b6cd-037f8a56a163"}
+{"action": "decision_verified", "at": "2026-10-08T22:50:36+00:00", "data": {"decision_id": "coupon-service-http-contract"}, "event_id": "04e6c170-edad-4017-8182-95e97da896bd"}
+{"action": "decision_implemented", "at": "2026-10-08T22:50:37+00:00", "data": {"decision_id": "coupon-admin-registry-plugin"}, "event_id": "b641ad8b-51fd-4bab-97b3-3e6c29550301"}
+{"action": "decision_verified", "at": "2026-10-08T22:50:37+00:00", "data": {"decision_id": "coupon-admin-registry-plugin"}, "event_id": "fd1dd99f-0a6a-4ed9-ab62-58d9dd61f12e"}

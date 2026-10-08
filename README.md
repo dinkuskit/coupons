@@ -1,16 +1,19 @@
 # coupons
 
-`@dinkuskit/coupons` is a private, public design stub for advanced promotions
-on DinkusKit Commerce and EmDash. This slice records an agreed v1
-documentation handoff; it does not add a runtime, evaluator, SDK, provider,
-secret, or production configuration.
+`@dinkuskit/coupons` is the home of the hosted DinkusKit coupon
+service, which brings coupons to Registry stores running DinkusKit Commerce on
+EmDash. Commerce's Registry build no longer carries coupons
+([commerce#75](https://github.com/dinkuskit/commerce/pull/75)) because of the
+Registry's 128 KiB per-file limit, and EmDash 1.2 has no way for one plugin to
+call another on the same site. So coupons come back as a Cloudflare Worker
+with one Durable Object per store, called by Commerce checkout over HTTPS, plus
+a small Coupons admin Registry plugin. Nothing is implemented yet.
 
-DinkusKit Commerce remains the sole owner of the basic-coupon evaluator,
-canonical pricing, cart, checkout, order, money, tax, refund, and basic-coupon
-admin contracts. Coupons never prices a cart in parallel or trusts browser
-prices/totals.
+Commerce keeps setting prices. The service evaluates a code only against lines
+Commerce has already priced, never against browser prices or totals, and uses
+Commerce's own coupon evaluator pinned by commit rather than a copy.
 
-The confirmed handoff covers one code per order, percentage or fixed total
+The feature set is the agreed v1: one code per order, percentage or fixed total
 discounts, all merchandise or selected products, sale-item inclusion defaulting
 to exclude, eligible-merchandise minimum spend before the coupon, percentage
 maximum discount, global redemption caps, payment reservation/consume/release
@@ -19,8 +22,9 @@ payment sessions, and new-session evaluation against current rules.
 
 See:
 
-- [Basic coupon boundary](docs/basic-v1-handoff.md)
-- [Integration request and acceptance matrix](docs/v1-integration-request.md)
+- [Hosted coupon service and HTTP contract](docs/hosted-coupon-service.md)
+- [Agreed v1 coupon semantics and acceptance matrix](docs/basic-v1-handoff.md)
+- [Earlier integration request, superseded](docs/v1-integration-request.md)
 
 Advanced stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
 store credit, gift cards, cashback, loyalty, and referrals remain out of scope.

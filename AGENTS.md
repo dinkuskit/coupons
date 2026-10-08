@@ -14,32 +14,43 @@ maintainer access and an immutable commit pin are supplied.
 
 ## Boundary
 
-- DinkusKit Commerce is the sole owner of the basic-coupon evaluator,
-  canonical promotion decisions, cart, checkout, order, money, tax, refund,
-  and basic-coupon admin contracts.
-- This repository is a documentation/design stub for a deferred advanced
-  extension. It must not price carts in parallel, trust browser totals, or
-  claim an implemented runtime or SDK.
-- The agreed v1 handoff covers one code/order, percentage or fixed total
-  discounts, eligible merchandise selection, global redemption caps, and the
-  payment-session lifecycle documented in `docs/basic-v1-handoff.md`.
+The boundary below was accepted on 2026-10-08 and is recorded in
+[docs/hosted-coupon-service.md](docs/hosted-coupon-service.md) and the
+GrillTrack ledger.
+
+- This repository owns the hosted DinkusKit coupon service for Registry
+  stores: a Cloudflare Worker with one Durable Object per store that holds
+  coupon records and redemption attempts, and the HTTP contract Commerce
+  checkout and the Coupons admin plugin call.
+- DinkusKit Commerce remains the sole owner of catalog prices, cart,
+  checkout, order, money, tax, and refunds. The service evaluates coupons only
+  against lines Commerce has already priced. It never trusts browser prices or
+  totals and never writes an order or payment amount.
+- There is one coupon evaluator: Commerce's `features/coupons`, imported here
+  pinned to an exact Commerce commit. Do not copy or fork it; bump the pin in
+  its own PR with the contract tests re-run.
+- The agreed v1 terms still define the feature: one code per order,
+  percentage or fixed total discounts, all merchandise or selected products,
+  sale-item inclusion defaulting to exclude, eligible minimum spend, a
+  percentage maximum, global redemption caps, the reserve, consume, release
+  and reconcile lifecycle, and frozen discounts for existing payment sessions
+  (`docs/basic-v1-handoff.md`).
 - Store credit, gift cards, cashback, loyalty, referrals, stacking, BOGO,
   bulk, marketing, analytics, and Inventory dependencies are not owned here.
 
 ## Bootstrap State
 
-This is a design stub. Add implementation only through an isolated branch and
-worktree with tests, proof, and a documented supported Commerce contract and
-SDK range after Commerce owners accept the proposals. Keep the package private
-until its dogfood and release gates pass.
+This is still a design stub with no runtime. Add implementation only through
+an isolated branch with tests and proof. Keep the package private until its
+dogfood and release gates pass.
 
-Every future plugin must be Registry-enabled and sandboxed with no native
-escape. This lock is unaffected by the documentation-only v1 handoff.
+Every plugin from this repository, including the Coupons admin plugin, must be
+Registry-enabled and sandboxed with no native escape. The hosted service is
+not an EmDash plugin and is not bound by the plugin file limit.
 
 The Commerce source at
 `8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a pinned historical reference
-only. It does not establish a dependency, current checkout contract, or
-published SDK range.
+only. The service's Commerce pin is set in its own PR.
 
 ## Gates
 
