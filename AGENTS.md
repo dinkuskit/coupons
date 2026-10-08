@@ -4,6 +4,14 @@ This public repository owns the advanced DinkusKit Coupons extension for
 DinkusKit Commerce on EmDash. Keep it generic: site copy, customer data,
 branding, credentials, and production configuration do not belong here.
 
+## Running GrillTrack
+
+Run `./scripts/agent-skills` first; it installs the pinned SaariusSkills
+skills into ignored `.cursor/skills/`. Use
+`./scripts/grilltrack --project . validate` or `show` for ledger reads.
+The CLI-only ledger rule remains in force. SmokySkills is enabled only after
+maintainer access and an immutable commit pin are supplied.
+
 ## Boundary
 
 - DinkusKit Commerce is the sole owner of the basic-coupon evaluator,
