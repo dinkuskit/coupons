@@ -30,3 +30,16 @@ for the owning contract; this repository invents no policy.
 The package remains private at `0.0.0`. The Commerce commit
 `8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a historical read-only
 reference, not a dependency or current SDK claim.
+
+## Install type
+
+DinkusKit plugins ship as EmDash Registry plugins: sandboxed and installed
+from the plugin Registry, which is how most EmDash sites add plugins. The
+Registry build is the supported product, and features are designed, tested and
+documented for it first. A native entry (code a site registers in its own
+configuration or Astro routes) is a developer and test setup only. It may not
+offer features the Registry build lacks, except temporary gaps listed here with
+the work that closes them. The project owner set this rule on 2026-10-08.
+
+Any Coupons plugin ships as a Registry plugin, as the Agent Contract already
+requires (sandboxed, with no native escape).
