@@ -14,9 +14,9 @@ maintainer access and an immutable commit pin are supplied.
 
 ## Boundary
 
-The boundary below is proposed in
-[docs/hosted-coupon-service.md](docs/hosted-coupon-service.md) and takes
-effect when its GrillTrack decisions are locked.
+The boundary below was accepted on 2026-10-08 and is recorded in
+[docs/hosted-coupon-service.md](docs/hosted-coupon-service.md) and the
+GrillTrack ledger.
 
 - This repository owns the hosted DinkusKit coupon service for Registry
   stores: a Cloudflare Worker with one Durable Object per store that holds

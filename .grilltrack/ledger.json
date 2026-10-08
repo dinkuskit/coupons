@@ -3,11 +3,12 @@
   "created_at": "2026-09-30T18:31:02+00:00",
   "current_focus": {
     "cadence": "sequential",
-    "confirmed": false,
+    "confirmed": true,
+    "confirmed_at": "2026-10-08T22:49:52+00:00",
     "domain": "hosted-coupon-service",
     "started_at": "2026-10-08T21:30:18+00:00",
-    "status": "grilling",
-    "summary": "Bring coupons to Registry stores after commerce#75 removed them from Commerce's Registry build: hosted Worker plus Durable Object per store in this repo, called by Commerce checkout over HTTPS, one pinned Commerce evaluator, admin as a small Registry plugin."
+    "status": "confirmed",
+    "summary": "Ronald accepted the hosted coupon service design in coupons#12 on the thread's decision card (2026-10-08): hosted Worker plus Durable Object per store, one pinned Commerce evaluator, HTTP contract v1, Coupons admin Registry plugin."
   },
   "decisions": [
     {
@@ -342,6 +343,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:.grilltrack/proof/PROOF.md"
+        },
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "DinkusKit Commerce is the sole owner of the basic engine, admin admission, and canonical pricing, cart, checkout, and order money. Coupons is an advanced extension only and must never act as a parallel money writer.",
+          "from": "verified",
+          "implementation_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md",
+          "note": "Commerce's Registry build no longer carries coupons (commerce#75). Commerce still owns prices, cart, checkout, order, money, tax and refunds; coupon records, caps and redemption attempts for Registry stores move to the hosted coupon service, which runs Commerce's own evaluator pinned by commit.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "commerce-money-engine-ownership",
@@ -373,9 +388,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-01T01:44:44+00:00",
+      "status": "superseded",
+      "superseded_by": "hosted-coupon-service",
+      "updated_at": "2026-10-08T22:49:53+00:00",
       "verification_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md"
     },
     {
@@ -907,10 +922,52 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:.grilltrack/proof/PROOF.md"
+        },
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "Preserve accepted totals across checkout: for a neutral 1000 minor-unit item with a 250 accepted discount yielding a 750 total, any evaluation or processor failure, timeout, or total mismatch must fail safely and must never silently charge 1000 or create a paid order.",
+          "from": "verified",
+          "implementation_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md",
+          "note": "dependency commerce-money-engine-ownership changed: Commerce's Registry build no longer carries coupons (commerce#75). Commerce still owns prices, cart, checkout, order, money, tax and refunds; coupon records, caps and redemption attempts for Registry stores move to the hosted coupon service, which runs Commerce's own evaluator pinned by commit.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "Preserve accepted totals across checkout: for a neutral 1000 minor-unit item with a 250 accepted discount yielding a 750 total, any evaluation or processor failure, timeout, or total mismatch must fail safely and must never silently charge 1000 or create a paid order.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "Preserve accepted totals across checkout: for a neutral 1000 minor-unit item with a 250 accepted discount yielding a 750 total, any evaluation or processor failure, timeout, or total mismatch must fail safely and must never silently charge 1000 or create a paid order.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "checkout-total-preservation",
-      "implementation_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md",
+      "implementation_ref": "file:docs/hosted-coupon-service.md",
       "question": "How must checkout handle accepted discounts when promotion evaluation or processor interaction fails?",
       "rationale": "Satisfies Issue 34's prerequisite ensuring promotion failures fail closed rather than silently charging full price to shoppers.",
       "repair_required": false,
@@ -940,8 +997,8 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-01T01:44:44+00:00",
-      "verification_ref": "file:.grilltrack/proof/AGREED-V1-PROOF.md"
+      "updated_at": "2026-10-08T22:50:36+00:00",
+      "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
       "baseline_ref": "git:4538e8c030750de98b4e857ef6492c13527aed4a",
@@ -1663,9 +1720,66 @@
         "agreed-v1-terms"
       ],
       "domain": "hosted-coupon-service",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "This repository becomes the hosted DinkusKit coupon service: a Cloudflare Worker with one Durable Object per store holding coupon records and redemption attempts, called by Commerce checkout over HTTPS at one fixed host with a scoped JWT. Commerce keeps owning prices, cart, checkout, order, money, tax and refunds; the service evaluates only Commerce-priced lines and never trusts browser prices or totals. If the service is unavailable the coupon is unavailable and checkout continues without it; an accepted discount still fails closed per checkout-total-preservation.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "This repository becomes the hosted DinkusKit coupon service: a Cloudflare Worker with one Durable Object per store holding coupon records and redemption attempts, called by Commerce checkout over HTTPS at one fixed host with a scoped JWT. Commerce keeps owning prices, cart, checkout, order, money, tax and refunds; the service evaluates only Commerce-priced lines and never trusts browser prices or totals. If the service is unavailable the coupon is unavailable and checkout continues without it; an accepted discount still fails closed per checkout-total-preservation.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency commerce-money-engine-ownership changed: Commerce's Registry build no longer carries coupons (commerce#75). Commerce still owns prices, cart, checkout, order, money, tax and refunds; coupon records, caps and redemption attempts for Registry stores move to the hosted coupon service, which runs Commerce's own evaluator pinned by commit.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "This repository becomes the hosted DinkusKit coupon service: a Cloudflare Worker with one Durable Object per store holding coupon records and redemption attempts, called by Commerce checkout over HTTPS at one fixed host with a scoped JWT. Commerce keeps owning prices, cart, checkout, order, money, tax and refunds; the service evaluates only Commerce-priced lines and never trusts browser prices or totals. If the service is unavailable the coupon is unavailable and checkout continues without it; an accepted discount still fails closed per checkout-total-preservation.",
+          "from": "needs_reverification",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "This repository becomes the hosted DinkusKit coupon service: a Cloudflare Worker with one Durable Object per store holding coupon records and redemption attempts, called by Commerce checkout over HTTPS at one fixed host with a scoped JWT. Commerce keeps owning prices, cart, checkout, order, money, tax and refunds; the service evaluates only Commerce-priced lines and never trusts browser prices or totals. If the service is unavailable the coupon is unavailable and checkout continues without it; an accepted discount still fails closed per checkout-total-preservation.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "hosted-coupon-service",
-      "implementation_ref": null,
+      "implementation_ref": "file:docs/hosted-coupon-service.md",
       "question": "Where do coupons live for Registry stores now that Commerce's Registry build cannot carry them?",
       "rationale": "Registry caps each plugin file at 128 KiB and commerce#75 removed coupons from Commerce's Registry build. EmDash 1.2 has no plugin-to-plugin call, and allowedHosts has no same-site token (exact host, *.suffix or bare *), so a same-site Coupons plugin would need Commerce to reach any host. Payments and Inventory already use the hosted pattern.",
       "repair_required": false,
@@ -1674,10 +1788,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T21:30:18+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-08T22:50:36+00:00",
+      "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
       "baseline_ref": "git:8afa5908d7fb8cbcd3bde4a3826cc59a59a865dd",
@@ -1691,9 +1805,66 @@
         "hosted-coupon-service"
       ],
       "domain": "hosted-coupon-service",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "Import @dinkuskit/commerce/features/coupons pinned to an exact Commerce commit. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. No copied evaluator; pin bumps are their own PR with contract tests re-run.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "Import @dinkuskit/commerce/features/coupons pinned to an exact Commerce commit. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. No copied evaluator; pin bumps are their own PR with contract tests re-run.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency commerce-money-engine-ownership changed: Commerce's Registry build no longer carries coupons (commerce#75). Commerce still owns prices, cart, checkout, order, money, tax and refunds; coupon records, caps and redemption attempts for Registry stores move to the hosted coupon service, which runs Commerce's own evaluator pinned by commit.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "Import @dinkuskit/commerce/features/coupons pinned to an exact Commerce commit. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. No copied evaluator; pin bumps are their own PR with contract tests re-run.",
+          "from": "needs_reverification",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "Import @dinkuskit/commerce/features/coupons pinned to an exact Commerce commit. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. No copied evaluator; pin bumps are their own PR with contract tests re-run.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "single-coupon-evaluator",
-      "implementation_ref": null,
+      "implementation_ref": "file:docs/hosted-coupon-service.md",
       "question": "How does the service get coupon logic without forking Commerce's?",
       "rationale": "Commerce's coupon core (about 1,350 lines) already takes storage through narrow ports, so one evaluator can serve native Commerce and the hosted service.",
       "repair_required": false,
@@ -1702,10 +1873,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T21:30:19+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-08T22:50:36+00:00",
+      "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
       "baseline_ref": "git:8afa5908d7fb8cbcd3bde4a3826cc59a59a865dd",
@@ -1720,9 +1891,66 @@
         "single-coupon-evaluator"
       ],
       "domain": "hosted-coupon-service",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency commerce-money-engine-ownership changed: Commerce's Registry build no longer carries coupons (commerce#75). Commerce still owns prices, cart, checkout, order, money, tax and refunds; coupon records, caps and redemption attempts for Registry stores move to the hosted coupon service, which runs Commerce's own evaluator pinned by commit.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "needs_reverification",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:36+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "coupon-service-http-contract",
-      "implementation_ref": null,
+      "implementation_ref": "file:docs/hosted-coupon-service.md",
       "question": "What is the HTTP contract between Commerce and the coupon service?",
       "rationale": "",
       "repair_required": false,
@@ -1731,10 +1959,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T21:30:19+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-08T22:50:36+00:00",
+      "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
       "baseline_ref": "git:8afa5908d7fb8cbcd3bde4a3826cc59a59a865dd",
@@ -1748,9 +1976,66 @@
         "hosted-coupon-service"
       ],
       "domain": "hosted-coupon-service",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "A small separate Coupons admin Registry plugin (list, create, edit, disable, counts) calling the service with coupons:admin, sandboxed with network:request limited to the service host. An operations CLI follows the create-cli pattern later.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:49:53+00:00",
+          "choice": "A small separate Coupons admin Registry plugin (list, create, edit, disable, counts) calling the service with coupons:admin, sandboxed with network:request limited to the service host. An operations CLI follows the create-cli pattern later.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "dependency commerce-money-engine-ownership changed: Commerce's Registry build no longer carries coupons (commerce#75). Commerce still owns prices, cart, checkout, order, money, tax and refunds; coupon records, caps and redemption attempts for Registry stores move to the hosted coupon service, which runs Commerce's own evaluator pinned by commit.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:37+00:00",
+          "choice": "A small separate Coupons admin Registry plugin (list, create, edit, disable, counts) calling the service with coupons:admin, sandboxed with network:request limited to the service host. An operations CLI follows the create-cli pattern later.",
+          "from": "needs_reverification",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T22:50:37+00:00",
+          "choice": "A small separate Coupons admin Registry plugin (list, create, edit, disable, counts) calling the service with coupons:admin, sandboxed with network:request limited to the service host. An operations CLI follows the create-cli pattern later.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "coupon-admin-registry-plugin",
-      "implementation_ref": null,
+      "implementation_ref": "file:docs/hosted-coupon-service.md",
       "question": "Where do merchants manage coupons for Registry stores?",
       "rationale": "Every DinkusKit plugin must be a Registry plugin, and the admin screens were about 8.6 KB of Commerce's bundle that no longer fits there.",
       "repair_required": false,
@@ -1759,10 +2044,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T21:30:19+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-08T22:50:37+00:00",
+      "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     }
   ],
   "last_activation": {
@@ -1776,5 +2061,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-10-08T21:30:19+00:00"
+  "updated_at": "2026-10-08T22:50:37+00:00"
 }

@@ -1,6 +1,6 @@
 # coupons
 
-`@dinkuskit/coupons` is the proposed home of the hosted DinkusKit coupon
+`@dinkuskit/coupons` is the home of the hosted DinkusKit coupon
 service, which brings coupons to Registry stores running DinkusKit Commerce on
 EmDash. Commerce's Registry build no longer carries coupons
 ([commerce#75](https://github.com/dinkuskit/commerce/pull/75)) because of the

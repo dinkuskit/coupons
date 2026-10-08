@@ -1,10 +1,10 @@
 # Hosted coupon service for Registry stores
 
-**Status:** proposed. The GrillTrack decisions `hosted-coupon-service`,
-`single-coupon-evaluator`, `coupon-service-http-contract` and
-`coupon-admin-registry-plugin` record it. Nothing here is implemented yet.
-Merging this document with those decisions locked is what changes the
-repository's purpose; until then the Agent Contract's older boundary stands.
+**Status:** accepted by the project owner on 2026-10-08. The GrillTrack
+decisions `hosted-coupon-service`, `single-coupon-evaluator`,
+`coupon-service-http-contract` and `coupon-admin-registry-plugin` are locked
+and supersede `commerce-money-engine-ownership`. The service itself is not
+implemented or deployed yet.
 
 ## Why this exists
 
