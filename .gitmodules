@@ -1,3 +1,0 @@
-[submodule "vendor/commerce"]
-	path = vendor/commerce
-	url = https://github.com/dinkuskit/commerce.git

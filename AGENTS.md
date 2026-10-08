@@ -43,13 +43,14 @@ GrillTrack ledger.
 The service is a scaffold: a Cloudflare Worker (`src/worker.ts`) and one
 `StoreCoupons` Durable Object per store (`src/store.ts`), tested in the local
 Workers runtime. It is not deployed and has no production configuration. Run
-`git submodule update --init`, `npm ci`, `npm run check:pin`,
-`npm run typecheck`, `npm test` and `npm run test:runtime` before pushing.
+`npm ci`, `npm run check:pin`, `npm run typecheck`, `npm test` and
+`npm run test:runtime` before pushing.
 Keep the package private until its dogfood and release gates pass.
 
 Import Commerce's coupon core only through `src/core.ts`. Never edit files
-under `vendor/commerce`; a pin bump updates the submodule and
-`package.json` `dinkuskit.commercePin` together.
+under `vendor/commerce`: they are an exact copy of Commerce at
+`package.json` `dinkuskit.commercePin`. A pin bump changes `commercePin` and
+rewrites the copy with `npm run check:pin -- --update` in the same commit.
 
 Every plugin from this repository, including the Coupons admin plugin, must be
 Registry-enabled and sandboxed with no native escape. The hosted service is

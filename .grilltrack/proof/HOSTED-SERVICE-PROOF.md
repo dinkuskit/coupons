@@ -41,3 +41,21 @@ core passed 8 runtime tests in workerd on 2026-10-08 (full paid checkout, cap
 under concurrent reservations, issued-quote check, admin uniqueness and
 revisions). It ships in a follow-up PR and is not claimed as proof of this
 documentation slice.
+
+## Evaluator copy (2026-10-08)
+
+`single-coupon-evaluator` was reopened and re-locked: the review bot refuses
+PRs that add a git submodule, so the project owner chose an exact copy of the
+Commerce files the build needs instead. Checked on the scaffold PR (coupons#13):
+
+- `vendor/commerce` holds 70 files copied by `npm run check:pin -- --update`
+  from Commerce commit `eafd3e83120c70120ccbe0a8684770b2739a4edf`; these are
+  exactly the Commerce files the Worker build resolves.
+- `npm run check:pin` verifies all 70 byte-for-byte against that commit, and
+  fails on an edited copy or on a file that does not exist at the pin (both
+  cases tried).
+- The Worker bundle is unchanged by the switch (104.50 KiB, 25.06 KiB
+  gzipped), typecheck reports no errors in this repository's sources, and the
+  6 workflow tests and 8 runtime tests pass.
+- The HTTP contract is unchanged, so `coupon-service-http-contract` is
+  reverified against the same document.

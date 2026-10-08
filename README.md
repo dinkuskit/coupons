@@ -39,9 +39,8 @@ reference, not a dependency or current SDK claim.
 ## Development
 
 ```sh
-git submodule update --init   # Commerce's coupon core, pinned by commit
 npm ci
-npm run check:pin             # submodule matches package.json commercePin
+npm run check:pin             # vendor/commerce matches Commerce at commercePin
 npm run typecheck
 npm run test:runtime          # Worker and Durable Object in local workerd
 npm run build                 # wrangler dry run
@@ -50,6 +49,11 @@ npm run build                 # wrangler dry run
 `src/worker.ts` routes `/v1/stores/{siteId}/...` and checks the store's
 token; `src/store.ts` is the per-store Durable Object that runs Commerce's
 coupon core over its own SQLite storage. Nothing is deployed yet.
+
+Commerce's coupon core, and the Commerce files it imports, are copied
+unchanged under `vendor/commerce` from the commit in `package.json`
+`dinkuskit.commercePin`. To move the pin, change `commercePin` and run
+`npm run check:pin -- --update`.
 
 ## Install type
 

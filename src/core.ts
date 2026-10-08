@@ -1,6 +1,7 @@
-// The one coupon evaluator: Commerce's own coupon core, pinned by the
-// vendor/commerce submodule (see package.json "dinkuskit.commercePin").
-// Import it only through this file so a pin bump has one place to review.
+// The one coupon evaluator: Commerce's own coupon core, copied unchanged into
+// vendor/commerce from the commit in package.json "dinkuskit.commercePin"
+// (`npm run check:pin` verifies the copy). Import it only through this file so
+// a pin bump has one place to review.
 export {
   CouponAdminError,
   CouponRedemptionError,
