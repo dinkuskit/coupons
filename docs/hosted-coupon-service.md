@@ -94,15 +94,25 @@ becomes a version range.
 
 ## HTTP contract v1
 
-All requests go to one fixed origin (proposed: `coupons.dinkuskit.com`,
-configurable per environment) under `/v1/stores/{siteId}`.
+All requests go to one fixed origin, `coupons.dinkuskit.com` in production
+(configurable per environment), under `/v1/stores/{siteId}`. It runs on the
+same Cloudflare account and domain as Payments (decided by the project owner on
+2026-10-08).
+
+The origin is an API for other programs, not a website. Shoppers' browsers
+never call it; Commerce calls it from the store's server. `GET /` returns one
+plain-text line naming the service and nothing else. Every other path needs a
+valid token for a specific store and returns a JSON error without one.
 
 ### Authentication
 
 Bearer JWT, verified the way Payments verifies Commerce today: `RS256` or
 `ES256`, issuer and audience from the service's configuration, keys from its
 JWKS URL, `site_id` claim equal to `{siteId}` in the path, `iat` no more than
-one hour old. Scopes:
+one hour old. Tokens come from the same issuer that signs Payments tokens, so a
+store sets up one credential flow, not two (decided for now by the project
+owner on 2026-10-08; revisit if DinkusKit gets a shared account issuer).
+Scopes:
 
 | Scope | Allows |
 | --- | --- |
@@ -224,9 +234,6 @@ bounded reader it uses for Payments.
 
 ## Open questions
 
-- Hosting and account: which Cloudflare account and hostname serve production,
-  and who issues `coupons:*` tokens (the Payments issuer, or a shared DinkusKit
-  account issuer).
 - Storage growth: Commerce keeps every attempt inside the coupon record. A
   coupon with a very large cap needs attempts split out of the record before
   it reaches Durable Object value limits; the service will measure this before
