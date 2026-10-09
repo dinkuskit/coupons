@@ -41,14 +41,27 @@ function respond(outcome: Outcome): Response {
     : Response.json({ error: { code: outcome.code, message: outcome.message } }, { status: outcome.status, headers: NO_STORE });
 }
 
+const tooLarge = () => new ServiceError(413, "BODY_TOO_LARGE", `request bodies are limited to ${MAX_BODY_BYTES} bytes`);
+
 async function readBody(request: Request): Promise<unknown> {
   if (request.method === "GET") return undefined;
-  const declared = Number(request.headers.get("content-length") ?? "0");
-  if (declared > MAX_BODY_BYTES) throw new ServiceError(413, "BODY_TOO_LARGE", `request bodies are limited to ${MAX_BODY_BYTES} bytes`);
-  const bytes = new Uint8Array(await request.arrayBuffer());
-  if (bytes.byteLength > MAX_BODY_BYTES) throw new ServiceError(413, "BODY_TOO_LARGE", `request bodies are limited to ${MAX_BODY_BYTES} bytes`);
+  if (Number(request.headers.get("content-length") ?? "0") > MAX_BODY_BYTES) throw tooLarge();
+  // Stop reading at the limit, whatever Content-Length said (or if it is absent).
+  const bytes = new Uint8Array(MAX_BODY_BYTES);
+  let length = 0;
+  const reader = request.body?.getReader();
+  while (reader) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (length + value.byteLength > MAX_BODY_BYTES) {
+      await reader.cancel();
+      throw tooLarge();
+    }
+    bytes.set(value, length);
+    length += value.byteLength;
+  }
   try {
-    return JSON.parse(new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes));
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes.subarray(0, length)));
   } catch {
     throw new ServiceError(400, "INVALID_INPUT", "body must be UTF-8 JSON");
   }
@@ -60,7 +73,13 @@ let cached: { key: string; authenticate: ReturnType<typeof createAuthenticator> 
 function authenticator(env: Env) {
   const key = `${env.ACCOUNT_ISSUER}\n${env.ACCOUNT_AUDIENCE}\n${env.ACCOUNT_JWKS_URL}`;
   if (cached?.key !== key) {
-    cached = { key, authenticate: createAuthenticator({ issuer: env.ACCOUNT_ISSUER, audience: env.ACCOUNT_AUDIENCE, jwksUrl: env.ACCOUNT_JWKS_URL }) };
+    let authenticate;
+    try {
+      authenticate = createAuthenticator({ issuer: env.ACCOUNT_ISSUER, audience: env.ACCOUNT_AUDIENCE, jwksUrl: env.ACCOUNT_JWKS_URL });
+    } catch {
+      throw new ServiceError(503, "NOT_CONFIGURED", "the coupon service is not configured");
+    }
+    cached = { key, authenticate };
   }
   return cached.authenticate;
 }
