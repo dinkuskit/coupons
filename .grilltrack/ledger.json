@@ -4,11 +4,11 @@
   "current_focus": {
     "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-08T22:49:52+00:00",
+    "confirmed_at": "2026-10-08T23:44:17+00:00",
     "domain": "hosted-coupon-service",
-    "started_at": "2026-10-08T21:30:18+00:00",
+    "started_at": "2026-10-08T23:43:47+00:00",
     "status": "confirmed",
-    "summary": "Ronald accepted the hosted coupon service design in coupons#12 on the thread's decision card (2026-10-08): hosted Worker plus Durable Object per store, one pinned Commerce evaluator, HTTP contract v1, Coupons admin Registry plugin."
+    "summary": "Ronald chose 'Copy the files' on the thread's decision card (2026-10-08): the service runs Commerce's coupon core from an exact copy under vendor/commerce, verified by CI against the pinned Commerce commit, instead of a git submodule the review bot refuses."
   },
   "decisions": [
     {
@@ -1796,7 +1796,7 @@
     {
       "baseline_ref": "git:8afa5908d7fb8cbcd3bde4a3826cc59a59a865dd",
       "candidate_refs": [],
-      "choice": "Import @dinkuskit/commerce/features/coupons pinned to an exact Commerce commit. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. No copied evaluator; pin bumps are their own PR with contract tests re-run.",
+      "choice": "Run Commerce's coupon core unchanged from an exact copy, under vendor/commerce, of the Commerce files the build needs, taken from the commit in package.json dinkuskit.commercePin. CI (npm run check:pin) fails if any copied file differs from Commerce at that commit, and the copy is never edited. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. Pin bumps are their own PR with contract tests re-run.",
       "context_ref": "file:docs/hosted-coupon-service.md",
       "created_at": "2026-10-08T21:30:19+00:00",
       "deferred_reason": null,
@@ -1861,12 +1861,68 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T23:43:47+00:00",
+          "choice": "Import @dinkuskit/commerce/features/coupons pinned to an exact Commerce commit. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. No copied evaluator; pin bumps are their own PR with contract tests re-run.",
+          "from": "verified",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "ClawSweeper refuses PRs that add a git submodule (coupons#13), so the pinned import moves from a submodule to an exact, CI-verified copy; the project owner chose copying on 2026-10-08.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "reopened",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-10-08T23:43:47+00:00",
+          "choice": "Import @dinkuskit/commerce/features/coupons pinned to an exact Commerce commit. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. No copied evaluator; pin bumps are their own PR with contract tests re-run.",
+          "from": "reopened",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-10-08T23:44:17+00:00",
+          "choice": "Run Commerce's coupon core unchanged from an exact copy, under vendor/commerce, of the Commerce files the build needs, taken from the commit in package.json dinkuskit.commercePin. CI (npm run check:pin) fails if any copied file differs from Commerce at that commit, and the copy is never edited. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. Pin bumps are their own PR with contract tests re-run.",
+          "from": "locked",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-10-08T23:44:17+00:00",
+          "choice": "Run Commerce's coupon core unchanged from an exact copy, under vendor/commerce, of the Commerce files the build needs, taken from the commit in package.json dinkuskit.commercePin. CI (npm run check:pin) fails if any copied file differs from Commerce at that commit, and the copy is never edited. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. Pin bumps are their own PR with contract tests re-run.",
+          "from": "implemented",
+          "implementation_ref": "file:scripts/check-commerce-pin.mjs",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
         }
       ],
       "id": "single-coupon-evaluator",
-      "implementation_ref": "file:docs/hosted-coupon-service.md",
+      "implementation_ref": "file:scripts/check-commerce-pin.mjs",
       "question": "How does the service get coupon logic without forking Commerce's?",
-      "rationale": "Commerce's coupon core (about 1,350 lines) already takes storage through narrow ports, so one evaluator can serve native Commerce and the hosted service.",
+      "rationale": "Project owner chose 'Copy the files' on 2026-10-08 after the review bot refused coupons#13 for its submodule. A byte-identical, CI-verified copy keeps one evaluator and lets the review bot see every shipped line.",
       "repair_required": false,
       "review_classifications": [],
       "review_history": [],
@@ -1875,7 +1931,7 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T22:50:36+00:00",
+      "updated_at": "2026-10-08T23:44:17+00:00",
       "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
@@ -1947,6 +2003,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-10-08T23:43:47+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "verified",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "dependency single-coupon-evaluator changed: ClawSweeper refuses PRs that add a git submodule (coupons#13), so the pinned import moves from a submodule to an exact, CI-verified copy; the project owner chose copying on 2026-10-08.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-10-08T23:44:17+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
         }
       ],
       "id": "coupon-service-http-contract",
@@ -1961,7 +2045,7 @@
       "review_source_identity": null,
       "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-08T22:50:36+00:00",
+      "updated_at": "2026-10-08T23:44:17+00:00",
       "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
@@ -2051,7 +2135,7 @@
     }
   ],
   "last_activation": {
-    "at": "2026-10-01T01:42:30+00:00",
+    "at": "2026-10-08T23:43:47+00:00",
     "mechanism": "implicit"
   },
   "last_pause": null,
@@ -2061,5 +2145,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-10-08T22:50:37+00:00"
+  "updated_at": "2026-10-08T23:44:17+00:00"
 }

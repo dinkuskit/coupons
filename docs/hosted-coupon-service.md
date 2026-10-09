@@ -3,8 +3,9 @@
 **Status:** accepted by the project owner on 2026-10-08. The GrillTrack
 decisions `hosted-coupon-service`, `single-coupon-evaluator`,
 `coupon-service-http-contract` and `coupon-admin-registry-plugin` are locked
-and supersede `commerce-money-engine-ownership`. The service itself is not
-implemented or deployed yet.
+and supersede `commerce-money-engine-ownership`. The service is a scaffold in
+`src/` with runtime tests; it is not deployed, and the admin plugin and
+Commerce client are not built yet.
 
 ## Why this exists
 
@@ -71,13 +72,20 @@ This is the same pattern Payments and Inventory already use.
   operations CLI follows the create-cli pattern used by the other DinkusKit
   CLIs, after this lands.
 
-## One evaluator, imported by commit
+## One evaluator, pinned by commit
 
 The coupon core in Commerce (`src/features/coupons`: evaluator, rule
 validation, caps, the reserve, consume, release and reconcile lifecycle,
-about 1,350 lines of plain TypeScript) is not copied. The service depends on
-`@dinkuskit/commerce` pinned to an exact commit and imports
-`@dinkuskit/commerce/features/coupons`, so there is one evaluator.
+about 1,350 lines of plain TypeScript) runs in the service unchanged. The
+service keeps an exact copy of it, and of the Commerce files it imports, under
+`vendor/commerce`, taken from the one Commerce commit recorded in
+`package.json` `dinkuskit.commercePin`. CI (`npm run check:pin`) fails if any
+copied file differs from Commerce at that commit, and the copy is never edited
+here, so there is still one evaluator.
+
+The copy lives in this repository, not in a git submodule or a package
+dependency, so the PR review bot sees every line the service ships; it
+refuses PRs that add a submodule. The project owner chose this on 2026-10-08.
 
 The core already takes its storage through narrow ports, which is what makes
 this work without forking it:
@@ -88,9 +96,10 @@ this work without forking it:
   memory from the priced lines Commerce sends with each quote. The evaluator
   then sees exactly the prices Commerce charges, and nothing else.
 
-Bumping the pin is a deliberate PR in this repository, with the contract tests
-re-run. If Commerce later publishes the core as its own package, the pin
-becomes a version range.
+Bumping the pin is a deliberate PR in this repository
+(`npm run check:pin -- --update`), with the contract tests re-run. If
+Commerce later publishes the core as its own package, the pin becomes a
+version range.
 
 ## HTTP contract v1
 
