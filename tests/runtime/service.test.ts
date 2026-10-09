@@ -72,6 +72,34 @@ test("every store route needs a token for that store and scope", async () => {
   expect((await call("POST", "/quotes", { quoteId: "q", code: "X", lines: cart }, { scope: "coupons:admin" })).status).toBe(403);
 });
 
+test("a missing or non-https identity configuration answers NOT_CONFIGURED", async () => {
+  const request = () => new Request(`https://coupons.example.invalid/v1/stores/${site}/coupons`);
+  for (const override of [{ ACCOUNT_ISSUER: "" }, { ACCOUNT_ISSUER: "http://accounts.example.invalid" }, { ACCOUNT_JWKS_URL: "not a url" }]) {
+    const response = await worker.fetch(request(), { ...configured(), ...override } as Env);
+    expect(response.status).toBe(503);
+    expect((await response.json() as any).error.code).toBe("NOT_CONFIGURED");
+  }
+});
+
+test("bodies over 64 KiB are refused, with or without a Content-Length", async () => {
+  const headers = { authorization: `Bearer ${await sign({})}`, "content-type": "application/json" };
+  const url = `https://coupons.example.invalid/v1/stores/${site}/quotes`;
+  const oversized = JSON.stringify({ quoteId: "q", code: "X", lines: cart, padding: "x".repeat(64 * 1024) });
+  const declared = await worker.fetch(new Request(url, { method: "POST", headers, body: oversized }), configured());
+  expect(declared.status).toBe(413);
+  const chunk = new TextEncoder().encode("x".repeat(16 * 1024));
+  let sent = 0;
+  const streamed = await worker.fetch(new Request(url, {
+    method: "POST", headers,
+    body: new ReadableStream({ pull(controller) { sent++ < 8 ? controller.enqueue(chunk) : controller.close(); } }),
+  }), configured());
+  expect(streamed.status).toBe(413);
+  expect((await streamed.json() as any).error.code).toBe("BODY_TOO_LARGE");
+  expect(sent).toBeLessThan(8); // reading stopped at the limit, not at the end
+  const garbled = await worker.fetch(new Request(url, { method: "POST", headers, body: "{" }), configured());
+  expect((await garbled.json() as any).error.code).toBe("INVALID_INPUT");
+});
+
 test("a quote uses Commerce's evaluator on Commerce's prices, and sale items stay excluded by default", async () => {
   const created = await coupon("SAVE25");
   const quoted = await call("POST", "/quotes", { quoteId: "quote-1", code: " save25 ", lines: cart });
