@@ -3,11 +3,12 @@
   "created_at": "2026-09-30T18:31:02+00:00",
   "current_focus": {
     "cadence": "frontier-batch",
-    "confirmed": false,
+    "confirmed": true,
+    "confirmed_at": "2026-10-10T02:25:01+00:00",
     "domain": "coupon-admin-plugin",
     "started_at": "2026-10-10T01:50:53+00:00",
-    "status": "grilling",
-    "summary": "Second half of Ronald's 'Coupon admin' choice on 2026-10-10 (00:14 UTC): the Coupons admin Registry plugin for the store dashboard, after the CLI merged in coupons#15. Two choices wait for his approval: the plugin's shape and pass handling, and the two service changes it needs (edit preview, admin answers without redemption history)."
+    "status": "confirmed",
+    "summary": "Ronald chose 'Approve both' on the decision card 'Approve the two Coupons page choices so the PR can go to review?' in the thread on 2026-10-10 02:23 UTC, after a plain explanation of both choices: the Coupons admin page (list, open, create, edit, turn off, turn on, every change previewed then confirmed within five minutes, the store's coupon pass as its one encrypted setting, network only to the coupon service) and the coupon service changes it needs (previewed edits, admin answers that give counts instead of every use). Approving does not merge anything; merging still waits for his word."
   },
   "decisions": [
     {
@@ -2287,9 +2288,52 @@
         "coupon-admin-preview-confirm"
       ],
       "domain": "coupon-admin-plugin",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-10T02:25:01+00:00",
+          "choice": "plugins/coupons-admin ships one sandboxed Registry plugin (slug dinkus-coupons, name Coupons, no native entry) with one admin page, Coupons, and network:request limited to coupons.dinkuskit.com; no storage collections. Its admin route needs plugins:manage and a signed-in administrator on an admin page. Its only setting is the store's coupons:admin pass, saved as an encrypted secret; the store comes from the pass and the service address is fixed. Screens: coupon list (25 a page, newest first), coupon page (terms plus uses allowed, used, held by checkouts in progress, left), create, edit (code, discount, products, sale items, minimum spend, first and last day, time zone, total uses), turn off and turn on; no delete. Days are whole days in a picked time zone (US zones and UTC, plus a coupon's own zone); a blank first day starts now; an edit keeps the exact time of a day it leaves alone. Every change goes through the service's preview and needs a confirm click from the same administrator within five minutes; the plugin keeps the pending change and its command id in plugin KV for up to a day, so Check again after a lost answer never repeats a change. Before calling, the plugin explains a missing, unreadable, checkout-only, hour-old or refused pass and links to settings; renewing passes waits for the dinkuskit.com sign-in service.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T02:25:01+00:00",
+          "choice": "plugins/coupons-admin ships one sandboxed Registry plugin (slug dinkus-coupons, name Coupons, no native entry) with one admin page, Coupons, and network:request limited to coupons.dinkuskit.com; no storage collections. Its admin route needs plugins:manage and a signed-in administrator on an admin page. Its only setting is the store's coupons:admin pass, saved as an encrypted secret; the store comes from the pass and the service address is fixed. Screens: coupon list (25 a page, newest first), coupon page (terms plus uses allowed, used, held by checkouts in progress, left), create, edit (code, discount, products, sale items, minimum spend, first and last day, time zone, total uses), turn off and turn on; no delete. Days are whole days in a picked time zone (US zones and UTC, plus a coupon's own zone); a blank first day starts now; an edit keeps the exact time of a day it leaves alone. Every change goes through the service's preview and needs a confirm click from the same administrator within five minutes; the plugin keeps the pending change and its command id in plugin KV for up to a day, so Check again after a lost answer never repeats a change. Before calling, the plugin explains a missing, unreadable, checkout-only, hour-old or refused pass and links to settings; renewing passes waits for the dinkuskit.com sign-in service.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T02:25:02+00:00",
+          "choice": "plugins/coupons-admin ships one sandboxed Registry plugin (slug dinkus-coupons, name Coupons, no native entry) with one admin page, Coupons, and network:request limited to coupons.dinkuskit.com; no storage collections. Its admin route needs plugins:manage and a signed-in administrator on an admin page. Its only setting is the store's coupons:admin pass, saved as an encrypted secret; the store comes from the pass and the service address is fixed. Screens: coupon list (25 a page, newest first), coupon page (terms plus uses allowed, used, held by checkouts in progress, left), create, edit (code, discount, products, sale items, minimum spend, first and last day, time zone, total uses), turn off and turn on; no delete. Days are whole days in a picked time zone (US zones and UTC, plus a coupon's own zone); a blank first day starts now; an edit keeps the exact time of a day it leaves alone. Every change goes through the service's preview and needs a confirm click from the same administrator within five minutes; the plugin keeps the pending change and its command id in plugin KV for up to a day, so Check again after a lost answer never repeats a change. Before calling, the plugin explains a missing, unreadable, checkout-only, hour-old or refused pass and links to settings; renewing passes waits for the dinkuskit.com sign-in service.",
+          "from": "implemented",
+          "implementation_ref": "file:plugins/coupons-admin/src/plugin.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "coupon-admin-plugin-v1",
-      "implementation_ref": null,
+      "implementation_ref": "file:plugins/coupons-admin/src/plugin.ts",
       "question": "What does the first Coupons admin Registry plugin do, and how does it reach the coupon service?",
       "rationale": "Ronald chose Coupon admin on 2026-10-10: the CLI first, then the admin plugin. Registry first, the locked coupon-admin-registry-plugin boundary, and the preview and confirm rule already used by the CLI and the Inventory plugin; about 24 KB, far under the 128 KiB per-file limit.",
       "repair_required": false,
@@ -2298,10 +2342,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T01:50:53+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T02:25:02+00:00",
+      "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
     },
     {
       "baseline_ref": "git:075fe33",
@@ -2316,9 +2360,52 @@
         "coupon-service-http-contract"
       ],
       "domain": "coupon-admin-plugin",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-10T02:25:01+00:00",
+          "choice": "The admin preview routes add action edit: { couponId, changes } naming at least one of code, globalCap and rule, where rule holds only the fields it replaces whole (discount, appliesTo, selectedProductIds, includeSaleItems, minimumEligibleMerchandise, startsAt, endsAt, timeZone). The preview fixes the whole next rule (same rule id, version plus one), is bound to the coupon's revision like disable and enable, and an edit to the values the coupon already has is 409 NO_CHANGE; turning off and on stay their own actions. Every admin answer (list, get, create, edit, disable, previews, commands) gives coupons without their redemption attempts; counts report consumed, held and left.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T02:25:01+00:00",
+          "choice": "The admin preview routes add action edit: { couponId, changes } naming at least one of code, globalCap and rule, where rule holds only the fields it replaces whole (discount, appliesTo, selectedProductIds, includeSaleItems, minimumEligibleMerchandise, startsAt, endsAt, timeZone). The preview fixes the whole next rule (same rule id, version plus one), is bound to the coupon's revision like disable and enable, and an edit to the values the coupon already has is 409 NO_CHANGE; turning off and on stay their own actions. Every admin answer (list, get, create, edit, disable, previews, commands) gives coupons without their redemption attempts; counts report consumed, held and left.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T02:25:02+00:00",
+          "choice": "The admin preview routes add action edit: { couponId, changes } naming at least one of code, globalCap and rule, where rule holds only the fields it replaces whole (discount, appliesTo, selectedProductIds, includeSaleItems, minimumEligibleMerchandise, startsAt, endsAt, timeZone). The preview fixes the whole next rule (same rule id, version plus one), is bound to the coupon's revision like disable and enable, and an edit to the values the coupon already has is 409 NO_CHANGE; turning off and on stay their own actions. Every admin answer (list, get, create, edit, disable, previews, commands) gives coupons without their redemption attempts; counts report consumed, held and left.",
+          "from": "implemented",
+          "implementation_ref": "file:src/store.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "coupon-admin-edit-preview",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/store.ts",
       "question": "What does the coupon service change so the admin plugin can edit coupons and load busy ones?",
       "rationale": "The plugin's edit screen needs a previewed edit. Admin answers carried every redemption attempt, so one busy coupon could push the list past EmDash's 8 MiB limit on a plugin's network answer; nothing read the attempts from these answers.",
       "repair_required": false,
@@ -2327,10 +2414,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T01:50:53+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T02:25:02+00:00",
+      "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
     }
   ],
   "last_activation": {
@@ -2344,5 +2431,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-10-10T01:50:53+00:00"
+  "updated_at": "2026-10-10T02:25:02+00:00"
 }

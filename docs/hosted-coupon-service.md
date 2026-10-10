@@ -10,8 +10,8 @@ landed in [commerce#82](https://github.com/dinkuskit/commerce/pull/82). The
 admin preview and confirm routes below were approved by the project owner on
 2026-10-10 (GrillTrack decisions `coupons-cli-v1` and
 `coupon-admin-preview-confirm`). The Coupons admin plugin and the edit
-preview it needs are proposed as `coupon-admin-plugin-v1` and
-`coupon-admin-edit-preview`, waiting for the project owner's approval.
+preview it needs were approved by the project owner on 2026-10-10 (GrillTrack
+decisions `coupon-admin-plugin-v1` and `coupon-admin-edit-preview`).
 
 ## Why this exists
 

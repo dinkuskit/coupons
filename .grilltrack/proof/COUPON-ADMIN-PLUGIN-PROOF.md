@@ -5,7 +5,10 @@
   "Coupon admin" choice on 2026-10-10 (the CLI half merged in coupons#15).
 - **Baseline:** `git:075fe33` (`origin/main` when the slice started).
 - **Decisions:** `coupon-admin-plugin-v1` and `coupon-admin-edit-preview`,
-  proposed and waiting for the project owner's approval. They are not locked.
+  approved by the project owner on 2026-10-10 02:23 UTC ("Approve both" on
+  the thread's decision card), then locked, implemented and verified against
+  this proof. Approval does not merge anything; merging waits for the project
+  owner's word.
 - **Scope:** the service's edit preview and attempt-free admin answers, the
   Coupons admin Registry plugin, its tests, CI steps and docs. No deployment,
   secret, published package, Registry listing or production change is part
