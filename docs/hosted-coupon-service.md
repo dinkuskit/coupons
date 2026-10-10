@@ -204,7 +204,9 @@ Rules the service enforces:
 Bodies are the inputs Commerce's `CouponAdminPort` already validates: create
 takes `{ code, globalCap, rule, disabled? }`, and edit changes any of `code`,
 `globalCap`, `disabled` and `rule`. A code already used by another coupon in
-the store is `409 CODE_IN_USE`.
+the store is `409 CODE_IN_USE`. Every admin answer gives coupons without their
+redemption attempts, so a busy coupon's answer stays small; `counts` reports
+how many uses are consumed, held and left.
 
 #### Preview and confirm (`coupons:admin`)
 
@@ -215,19 +217,25 @@ whether to use them or these.
 
 | Method and path | Body | Success |
 | --- | --- | --- |
-| `POST /coupons/previews` | `{ action: "create", coupon }` or `{ action: "disable" \| "enable", couponId }` | `200 { preview, confirmation }` |
+| `POST /coupons/previews` | `{ action: "create", coupon }`, `{ action: "edit", couponId, changes }`, or `{ action: "disable" \| "enable", couponId }` | `200 { preview, confirmation }` |
 | `POST /coupons/commands` | `{ commandId, confirmation, request }` | `200 { outcome: "committed", commandId, coupon }` |
 | `GET /coupons/commands/{commandId}` | | the stored result, or `404 NOT_FOUND` |
 
 - A create `coupon` is `{ code, globalCap, rule, disabled? }`. The rule's
   `ruleId` and `startsAt` may be left out; the service fills them in (a new
   id, and the preview time) and the preview shows them.
+- An edit's `changes` names at least one of `code`, `globalCap` and `rule`.
+  `rule` holds only the fields to replace (`discount`, `appliesTo`,
+  `selectedProductIds`, `includeSaleItems`, `minimumEligibleMerchandise`,
+  `startsAt`, `endsAt`, `timeZone`); each replaces the current value whole,
+  the rule keeps its id, and its version goes up by one. The preview fixes
+  the whole next rule, so the commit writes exactly what was shown. Turning
+  a coupon off or on stays its own action.
 - `preview` is `{ action, couponId, before, after }`: `before` is the current
-  coupon (`null` for create) and `after` what the change would make. Coupon
-  summaries never include redemption attempts.
+  coupon (`null` for create) and `after` what the change would make.
 - `confirmation` is `{ value, expiresAt }`. The value is single-use, lasts
   five minutes, and is bound to the store, the exact request (compared as
-  canonical JSON), and for disable and enable the coupon's revision at
+  canonical JSON), and for edit, disable and enable the coupon's revision at
   preview time.
 - `commandId` is chosen by the caller (`[A-Za-z0-9._:-]`, at most 200).
   Repeating the same command id, confirmation and request returns the first
@@ -240,7 +248,8 @@ whether to use them or these.
   uses up the confirmation. A refusal at the confirmation gate stores
   nothing.
 - A preview of a change that would do nothing (turning off a coupon that is
-  already off) is `409 NO_CHANGE`.
+  already off, or an edit to the values the coupon already has) is
+  `409 NO_CHANGE`.
 
 ### Errors
 
