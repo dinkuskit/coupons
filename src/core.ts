@@ -9,6 +9,7 @@ export {
   createCouponAdmin,
   createCouponAttemptOwner,
   normalizeCouponCode,
+  normalizeCouponRule,
   type CouponAttempt,
   type CouponAttemptPort,
   type CouponCatalogStorage,
@@ -17,6 +18,7 @@ export {
   type CouponProviderReconciliation,
   type CouponQuote,
   type CouponRecord,
+  type CouponRule,
 } from "../vendor/commerce/src/features/coupons/index.js";
 export { CatalogError, normalizeMoney, parseMinorUnits } from "../vendor/commerce/src/features/catalog/kernel/index.js";
 export type { Money } from "../vendor/commerce/src/features/catalog/kernel/index.js";
