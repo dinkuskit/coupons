@@ -139,3 +139,6 @@
 {"action": "decision_verified", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupon-admin-preview-confirm"}, "event_id": "5b883f0a-c7db-4107-9cb4-12e78242bf01"}
 {"action": "decision_implemented", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupons-cli-v1"}, "event_id": "c616218f-6a60-4d46-ace6-2e2656ceebb1"}
 {"action": "decision_verified", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupons-cli-v1"}, "event_id": "a4718a55-6dc8-4269-a231-7c0b97086194"}
+{"action": "focus_started", "at": "2026-10-10T01:50:53+00:00", "data": {"cadence": "frontier-batch", "domain": "coupon-admin-plugin"}, "event_id": "2d8f4e80-329a-4310-bc35-9877bfefb553"}
+{"action": "decision_proposed", "at": "2026-10-10T01:50:53+00:00", "data": {"decision_id": "coupon-admin-plugin-v1"}, "event_id": "a91c1c13-7a63-43c5-94c1-40741e3fd14e"}
+{"action": "decision_proposed", "at": "2026-10-10T01:50:53+00:00", "data": {"decision_id": "coupon-admin-edit-preview"}, "event_id": "5eebafa5-6c9d-478a-8e0e-56bb32acc57f"}

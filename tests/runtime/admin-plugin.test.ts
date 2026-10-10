@@ -6,7 +6,7 @@ import { exportJWK, generateKeyPair, SignJWT } from "jose";
 import { validateBlockResponse, type Block, type BlockResponse } from "@emdash-cms/blocks/server";
 import worker from "../../src/worker";
 import plugin, { handleAdmin } from "../../plugins/coupons-admin/src/plugin";
-import { dayBoundary, editChanges, newDraft, termsFromDraft, type Coupon } from "../../plugins/coupons-admin/src/terms";
+import { dayBoundary, editChanges, newDraft, termsFromDraft, when, type Coupon } from "../../plugins/coupons-admin/src/terms";
 import { readPass } from "../../plugins/coupons-admin/src/service";
 
 const audience = "dinkus-coupons";
@@ -162,7 +162,7 @@ test("an owner creates a coupon by previewing it and confirming it once", async 
     { label: "Code", value: "Spring" },
     { label: "Discount", value: "25% off, at most $10.00" },
     { label: "Minimum spend", value: "$50.00" },
-    { label: "Ends", value: "2030-12-31 23:59:59 EST" },
+    { label: "Ends", value: "Dec 31, 2030, 11:59 PM EST" },
     { label: "Uses allowed", value: "100" },
   ]));
   expect(await coupons()).toEqual([]);
@@ -279,6 +279,9 @@ test("days become the start and end of the day in the coupon's time zone, across
   expect(dayBoundary("2026-11-01", "end", "America/Los_Angeles")).toBe("2026-11-01T23:59:59-08:00");
   expect(dayBoundary("2026-07-04", "start", "UTC")).toBe("2026-07-04T00:00:00+00:00");
   expect(dayBoundary("2026-02-30", "start", "UTC")).toBeNull();
+  expect(when("2026-03-08T04:59:59.000Z", "America/New_York")).toBe("Mar 7, 2026, 11:59 PM EST");
+  expect(when("2026-07-04T16:05:30.000Z", "America/Los_Angeles")).toBe("Jul 4, 2026, 9:05:30 AM PDT");
+  expect(when("2026-07-04T00:00:00.000Z", "UTC")).toBe("Jul 4, 2026, 12:00 AM UTC");
 
   const fixed = termsFromDraft({ ...newDraft(), code: "TEN", kind: "fixed", amount: "$1,250.5", endsOn: "2030-01-31", uses: "3" });
   expect(fixed).toMatchObject({ terms: { rule: { discount: { kind: "fixed", amount: { currency: "USD", minor: "125050" } } } } });

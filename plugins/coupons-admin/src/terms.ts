@@ -92,14 +92,22 @@ function zoneParts(instant: number, timeZone: string): Record<string, string> {
   );
 }
 
-/** An instant as wall-clock time in the coupon's own time zone, which is how the owner entered it. */
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * An instant as wall-clock time in the coupon's own time zone, which is how
+ * the owner entered it, such as "Dec 31, 2026, 11:59 PM EST". Seconds show
+ * only when they are neither :00 nor the :59 that ends a day.
+ */
 export function when(instant: string, timeZone: string): string {
   const time = Date.parse(instant);
   if (Number.isNaN(time)) return instant;
   try {
     const parts = zoneParts(time, timeZone);
-    const seconds = parts.second === "00" ? "" : `:${parts.second}`;
-    return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}${seconds} ${parts.timeZoneName}`;
+    const hour = Number(parts.hour);
+    const seconds = parts.second === "00" || parts.second === "59" ? "" : `:${parts.second}`;
+    const clock = `${hour % 12 || 12}:${parts.minute}${seconds} ${hour < 12 ? "AM" : "PM"}`;
+    return `${MONTHS[Number(parts.month) - 1]} ${Number(parts.day)}, ${parts.year}, ${clock} ${parts.timeZoneName}`;
   } catch {
     return instant;
   }

@@ -3,12 +3,11 @@
   "created_at": "2026-09-30T18:31:02+00:00",
   "current_focus": {
     "cadence": "frontier-batch",
-    "confirmed": true,
-    "confirmed_at": "2026-10-10T01:03:09+00:00",
-    "domain": "coupon-admin-cli",
-    "started_at": "2026-10-10T00:34:41+00:00",
-    "status": "confirmed",
-    "summary": "Ronald replied 'approved' in the thread on 2026-10-10 01:02 UTC after a plain explanation of both choices: a show-me-first step with a one-time five-minute approval code for every coupon change, and the first tool commands (list, show, create, turn off, turn on; edit later; no skipping the approval; no built-in store address). He did not choose merge, so merging waits for his word."
+    "confirmed": false,
+    "domain": "coupon-admin-plugin",
+    "started_at": "2026-10-10T01:50:53+00:00",
+    "status": "grilling",
+    "summary": "Second half of Ronald's 'Coupon admin' choice on 2026-10-10 (00:14 UTC): the Coupons admin Registry plugin for the store dashboard, after the CLI merged in coupons#15. Two choices wait for his approval: the plugin's shape and pass handling, and the two service changes it needs (edit preview, admin answers without redemption history)."
   },
   "decisions": [
     {
@@ -2274,6 +2273,64 @@
       "superseded_by": null,
       "updated_at": "2026-10-10T01:03:10+00:00",
       "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
+    },
+    {
+      "baseline_ref": "git:075fe33",
+      "candidate_refs": [],
+      "choice": "plugins/coupons-admin ships one sandboxed Registry plugin (slug dinkus-coupons, name Coupons, no native entry) with one admin page, Coupons, and network:request limited to coupons.dinkuskit.com; no storage collections. Its admin route needs plugins:manage and a signed-in administrator on an admin page. Its only setting is the store's coupons:admin pass, saved as an encrypted secret; the store comes from the pass and the service address is fixed. Screens: coupon list (25 a page, newest first), coupon page (terms plus uses allowed, used, held by checkouts in progress, left), create, edit (code, discount, products, sale items, minimum spend, first and last day, time zone, total uses), turn off and turn on; no delete. Days are whole days in a picked time zone (US zones and UTC, plus a coupon's own zone); a blank first day starts now; an edit keeps the exact time of a day it leaves alone. Every change goes through the service's preview and needs a confirm click from the same administrator within five minutes; the plugin keeps the pending change and its command id in plugin KV for up to a day, so Check again after a lost answer never repeats a change. Before calling, the plugin explains a missing, unreadable, checkout-only, hour-old or refused pass and links to settings; renewing passes waits for the dinkuskit.com sign-in service.",
+      "context_ref": "file:plugins/coupons-admin/README.md",
+      "created_at": "2026-10-10T01:50:53+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "coupon-admin-registry-plugin",
+        "coupon-admin-preview-confirm"
+      ],
+      "domain": "coupon-admin-plugin",
+      "history": [],
+      "id": "coupon-admin-plugin-v1",
+      "implementation_ref": null,
+      "question": "What does the first Coupons admin Registry plugin do, and how does it reach the coupon service?",
+      "rationale": "Ronald chose Coupon admin on 2026-10-10: the CLI first, then the admin plugin. Registry first, the locked coupon-admin-registry-plugin boundary, and the preview and confirm rule already used by the CLI and the Inventory plugin; about 24 KB, far under the 128 KiB per-file limit.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-10-10T01:50:53+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": "git:075fe33",
+      "candidate_refs": [],
+      "choice": "The admin preview routes add action edit: { couponId, changes } naming at least one of code, globalCap and rule, where rule holds only the fields it replaces whole (discount, appliesTo, selectedProductIds, includeSaleItems, minimumEligibleMerchandise, startsAt, endsAt, timeZone). The preview fixes the whole next rule (same rule id, version plus one), is bound to the coupon's revision like disable and enable, and an edit to the values the coupon already has is 409 NO_CHANGE; turning off and on stay their own actions. Every admin answer (list, get, create, edit, disable, previews, commands) gives coupons without their redemption attempts; counts report consumed, held and left.",
+      "context_ref": "file:docs/hosted-coupon-service.md",
+      "created_at": "2026-10-10T01:50:53+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [
+        "coupon-admin-preview-confirm",
+        "coupon-service-http-contract"
+      ],
+      "domain": "coupon-admin-plugin",
+      "history": [],
+      "id": "coupon-admin-edit-preview",
+      "implementation_ref": null,
+      "question": "What does the coupon service change so the admin plugin can edit coupons and load busy ones?",
+      "rationale": "The plugin's edit screen needs a previewed edit. Admin answers carried every redemption attempt, so one busy coupon could push the list past EmDash's 8 MiB limit on a plugin's network answer; nothing read the attempts from these answers.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "proposed",
+      "superseded_by": null,
+      "updated_at": "2026-10-10T01:50:53+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -2287,5 +2344,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-10-10T01:03:10+00:00"
+  "updated_at": "2026-10-10T01:50:53+00:00"
 }
