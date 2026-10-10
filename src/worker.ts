@@ -27,6 +27,10 @@ const ROUTES: Route[] = [
   route("GET", "/redemptions/:id", "coupons:checkout", (s, { params, url }) => s.getAttempt(params[0]!, url.searchParams.get("couponId"))),
   route("GET", "/coupons", "coupons:admin", s => s.listCoupons()),
   route("POST", "/coupons", "coupons:admin", (s, { body }) => s.createCoupon(body)),
+  // Literal admin paths come before the coupon-id routes they could shadow.
+  route("POST", "/coupons/previews", "coupons:admin", (s, { body }) => s.previewAdmin(body)),
+  route("POST", "/coupons/commands", "coupons:admin", (s, { body }) => s.commitAdmin(body)),
+  route("GET", "/coupons/commands/:id", "coupons:admin", (s, { params }) => s.adminCommand(params[0]!)),
   route("GET", "/coupons/:id", "coupons:admin", (s, { params }) => s.getCoupon(params[0]!)),
   route("PUT", "/coupons/:id", "coupons:admin", (s, { params, body }) => s.editCoupon(params[0]!, body)),
   route("POST", "/coupons/:id/disable", "coupons:admin", (s, { params, body }) => s.disableCoupon(params[0]!, body)),

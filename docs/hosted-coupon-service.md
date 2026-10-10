@@ -4,8 +4,12 @@
 decisions `hosted-coupon-service`, `single-coupon-evaluator`,
 `coupon-service-http-contract` and `coupon-admin-registry-plugin` are locked
 and supersede `commerce-money-engine-ownership`. The service is a scaffold in
-`src/` with runtime tests; it is not deployed, and the admin plugin and
-Commerce client are not built yet.
+`src/` with runtime tests and is not deployed. Commerce's checkout client
+landed in [commerce#82](https://github.com/dinkuskit/commerce/pull/82). The
+`dinkus-coupons` command-line tool ([CLI-SPEC.md](CLI-SPEC.md)) and the
+admin preview and confirm routes below were approved by the project owner on
+2026-10-10 (GrillTrack decisions `coupons-cli-v1` and
+`coupon-admin-preview-confirm`); the admin plugin is not built yet.
 
 ## Why this exists
 
@@ -56,7 +60,7 @@ This is the same pattern Payments and Inventory already use.
                                       coupon records + redemption attempts
                 ▲
                 │  HTTPS, scoped JWT
- Merchant ──▶ Coupons admin (small Registry plugin; CLI later)
+ Merchant ──▶ dinkus-coupons CLI, then Coupons admin (small Registry plugin)
 ```
 
 - **Coupons service** (this repository): a Cloudflare Worker with one Durable
@@ -68,9 +72,10 @@ This is the same pattern Payments and Inventory already use.
   lines it has already priced and receives a discount quote. It never forwards
   browser-supplied prices or totals.
 - **Coupons admin** is a separate small Registry plugin with the admin screens
-  (list, create, edit, disable, counts). It calls the same service. An
-  operations CLI follows the create-cli pattern used by the other DinkusKit
-  CLIs, after this lands.
+  (list, create, edit, disable, counts). It calls the same service. The
+  `dinkus-coupons` operations CLI comes first (the project owner chose that
+  order on 2026-10-10); it follows the create-cli pattern of the other
+  DinkusKit CLIs and ships outside every plugin bundle.
 
 ## One evaluator, pinned by commit
 
@@ -126,7 +131,7 @@ Scopes:
 | Scope | Allows |
 | --- | --- |
 | `coupons:checkout` | quote and the redemption lifecycle |
-| `coupons:admin` | coupon create, edit, disable, list, counts |
+| `coupons:admin` | coupon create, edit, disable, list, counts, and admin previews and commands |
 
 Commerce holds only `coupons:checkout`. The admin plugin and CLI hold
 `coupons:admin`.
@@ -201,6 +206,42 @@ takes `{ code, globalCap, rule, disabled? }`, and edit changes any of `code`,
 `globalCap`, `disabled` and `rule`. A code already used by another coupon in
 the store is `409 CODE_IN_USE`.
 
+#### Preview and confirm (`coupons:admin`)
+
+Scripts and agents change coupons in two steps, so a person approves the exact
+change before it happens. The CLI uses only these routes for changes; the
+direct routes above stay for the admin plugin, which decides when it is built
+whether to use them or these.
+
+| Method and path | Body | Success |
+| --- | --- | --- |
+| `POST /coupons/previews` | `{ action: "create", coupon }` or `{ action: "disable" \| "enable", couponId }` | `200 { preview, confirmation }` |
+| `POST /coupons/commands` | `{ commandId, confirmation, request }` | `200 { outcome: "committed", commandId, coupon }` |
+| `GET /coupons/commands/{commandId}` | | the stored result, or `404 NOT_FOUND` |
+
+- A create `coupon` is `{ code, globalCap, rule, disabled? }`. The rule's
+  `ruleId` and `startsAt` may be left out; the service fills them in (a new
+  id, and the preview time) and the preview shows them.
+- `preview` is `{ action, couponId, before, after }`: `before` is the current
+  coupon (`null` for create) and `after` what the change would make. Coupon
+  summaries never include redemption attempts.
+- `confirmation` is `{ value, expiresAt }`. The value is single-use, lasts
+  five minutes, and is bound to the store, the exact request (compared as
+  canonical JSON), and for disable and enable the coupon's revision at
+  preview time.
+- `commandId` is chosen by the caller (`[A-Za-z0-9._:-]`, at most 200).
+  Repeating the same command id, confirmation and request returns the first
+  result, even after the confirmation's five minutes, so a caller that lost
+  the answer can retry safely. Results are kept for 30 days; used and expired
+  previews are cleared a day after they expire.
+- A change the service refuses on its merits is stored as
+  `409 { outcome: "rejected", commandId, rejection: { code, message } }`
+  (`INVALID_INPUT`, `NOT_FOUND`, `REVISION_CONFLICT`, `CODE_IN_USE`) and
+  uses up the confirmation. A refusal at the confirmation gate stores
+  nothing.
+- A preview of a change that would do nothing (turning off a coupon that is
+  already off) is `409 NO_CHANGE`.
+
 ### Errors
 
 Errors are `{ "error": { "code": "<CODE>", "message": "<text>" } }`, with the
@@ -212,7 +253,7 @@ code taken from Commerce's own error types.
 | 401 / 403 | `UNAUTHENTICATED`, `FORBIDDEN` (bad token, wrong `site_id` or scope) |
 | 404 | `NOT_FOUND` (unknown code, coupon, attempt or path), `UNKNOWN_ATTEMPT` |
 | 405 | `METHOD_NOT_ALLOWED` |
-| 409 | `CAPACITY_EXHAUSTED`, `CONFLICTING_ATTEMPT`, `TERMINAL_CONFLICT`, `CONTENTION`, `QUOTE_NOT_ISSUED`, `REVISION_CONFLICT`, `CODE_IN_USE` |
+| 409 | `CAPACITY_EXHAUSTED`, `CONFLICTING_ATTEMPT`, `TERMINAL_CONFLICT`, `CONTENTION`, `QUOTE_NOT_ISSUED`, `REVISION_CONFLICT`, `CODE_IN_USE`, `NO_CHANGE`; at the confirmation gate `CONFIRMATION_NOT_FOUND`, `CONFIRMATION_EXPIRED`, `CONFIRMATION_ALREADY_USED`, `CONFIRMATION_MISMATCH`, `CONFLICTING_COMMAND` |
 | 413 | `BODY_TOO_LARGE` (request bodies over 64 KiB) |
 | 422 | `NOT_APPLICABLE` (inactive, disabled, minimum not met) |
 | 500 | `CORRUPTED_RECORD`, `STORAGE_UNAVAILABLE`, `INTERNAL` |

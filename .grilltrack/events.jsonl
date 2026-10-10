@@ -129,3 +129,13 @@
 {"action": "decision_implemented", "at": "2026-10-08T23:44:17+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "1bf7dbd9-9d15-4132-a542-9a2a1bc243eb"}
 {"action": "decision_verified", "at": "2026-10-08T23:44:17+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "f06977ea-f121-4b2d-8ffe-e9a7e7997c83"}
 {"action": "decision_verified", "at": "2026-10-08T23:44:17+00:00", "data": {"decision_id": "coupon-service-http-contract"}, "event_id": "43d6791d-68e9-442e-a3e8-f9e6fa9592bf"}
+{"action": "focus_started", "at": "2026-10-10T00:34:41+00:00", "data": {"cadence": "frontier-batch", "domain": "coupon-admin-cli"}, "event_id": "4adcb30f-9d86-40b4-bb6a-11d99f37bb19"}
+{"action": "decision_proposed", "at": "2026-10-10T00:34:41+00:00", "data": {"decision_id": "coupon-admin-preview-confirm"}, "event_id": "d59169d6-30c6-47fe-a373-02ebc68b38d6"}
+{"action": "decision_proposed", "at": "2026-10-10T00:34:41+00:00", "data": {"decision_id": "coupons-cli-v1"}, "event_id": "f2241f61-b402-4b16-b4af-d71d5203811f"}
+{"action": "shared_understanding_confirmed", "at": "2026-10-10T01:03:09+00:00", "data": {"summary": "Ronald replied 'approved' in the thread on 2026-10-10 01:02 UTC after a plain explanation of both choices: a show-me-first step with a one-time five-minute approval code for every coupon change, and the first tool commands (list, show, create, turn off, turn on; edit later; no skipping the approval; no built-in store address). He did not choose merge, so merging waits for his word."}, "event_id": "14d140f1-ed9a-4a7e-a7ea-a38ab3c64a3d"}
+{"action": "decision_locked", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupon-admin-preview-confirm"}, "event_id": "ae1618b4-405a-4ea7-b173-f51dbeeef4ff"}
+{"action": "decision_locked", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupons-cli-v1"}, "event_id": "204889ec-7938-4c66-9870-316bdf87299d"}
+{"action": "decision_implemented", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupon-admin-preview-confirm"}, "event_id": "56b9b7fb-2d51-47a3-b464-31e69d036247"}
+{"action": "decision_verified", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupon-admin-preview-confirm"}, "event_id": "5b883f0a-c7db-4107-9cb4-12e78242bf01"}
+{"action": "decision_implemented", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupons-cli-v1"}, "event_id": "c616218f-6a60-4d46-ace6-2e2656ceebb1"}
+{"action": "decision_verified", "at": "2026-10-10T01:03:10+00:00", "data": {"decision_id": "coupons-cli-v1"}, "event_id": "a4718a55-6dc8-4269-a231-7c0b97086194"}

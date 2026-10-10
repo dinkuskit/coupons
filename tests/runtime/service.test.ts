@@ -178,3 +178,84 @@ test("admin keeps codes unique, edits by revision and disables", async () => {
   const listed = await call("GET", "/coupons", undefined, { scope: "coupons:admin" });
   expect(listed.json.coupons.map((c: any) => c.code)).toEqual(["ONCE"]);
 });
+
+const admin = (method: string, path: string, body?: unknown) => call(method, path, body, { scope: "coupons:admin" });
+const commit = (commandId: string, confirmation: string, request: unknown) =>
+  admin("POST", "/coupons/commands", { commandId, confirmation, request });
+
+test("an admin change commits only the change its confirmation previewed, and only once", async () => {
+  const { ruleId: _ruleId, startsAt: _startsAt, ...openRule } = rule();
+  const request = { action: "create", coupon: { code: "Spring", globalCap: 5, rule: openRule } };
+  const previewed = await admin("POST", "/coupons/previews", request);
+  expect(previewed.status).toBe(200);
+  const { preview, confirmation } = previewed.json;
+  expect(preview).toMatchObject({ action: "create", couponId: null, before: null, after: { code: "Spring", normalizedCode: "SPRING", globalCap: 5, disabled: false } });
+  expect(preview.after.rule.ruleId).toEqual(expect.any(String));
+  expect(Date.parse(preview.after.rule.startsAt)).toBeLessThanOrEqual(Date.now());
+  expect(confirmation.value).toMatch(/^cfm-[0-9a-f]{32}$/);
+  expect(Date.parse(confirmation.expiresAt) - Date.now()).toBeGreaterThan(4 * 60 * 1000);
+  expect((await admin("GET", "/coupons")).json.coupons).toEqual([]);
+
+  const changed = await commit("cmd-a", confirmation.value, { ...request, coupon: { ...request.coupon, globalCap: 50 } });
+  expect(changed.json.error.code).toBe("CONFIRMATION_MISMATCH");
+  expect((await admin("GET", "/coupons")).json.coupons).toEqual([]);
+
+  // Key order does not matter; the request is compared as canonical JSON.
+  const reordered = { coupon: { rule: openRule, globalCap: 5, code: "Spring" }, action: "create" };
+  const committed = await commit("cmd-a", confirmation.value, reordered);
+  expect(committed.status).toBe(200);
+  expect(committed.json).toMatchObject({ outcome: "committed", commandId: "cmd-a", coupon: { code: "Spring", revision: 1, rule: preview.after.rule } });
+  expect(Object.hasOwn(committed.json.coupon, "attempts")).toBe(false);
+
+  const retried = await commit("cmd-a", confirmation.value, request);
+  expect(retried).toEqual(committed);
+  expect(await admin("GET", "/coupons/commands/cmd-a")).toEqual(committed);
+  expect((await admin("GET", "/coupons")).json.coupons).toHaveLength(1);
+  expect((await commit("cmd-b", confirmation.value, request)).json.error.code).toBe("CONFIRMATION_ALREADY_USED");
+  expect((await commit("cmd-a", "cfm-other", request)).json.error.code).toBe("CONFLICTING_COMMAND");
+  expect((await commit("cmd-c", "cfm-unknown", request)).json.error.code).toBe("CONFIRMATION_NOT_FOUND");
+  expect((await admin("GET", "/coupons/commands/cmd-c")).status).toBe(404);
+  // A command id that looks like a coupon sub-path still reaches the command lookup.
+  expect((await admin("GET", "/coupons/commands/counts")).json.error.message).toMatch(/no command/);
+  expect((await call("POST", "/coupons/previews", request, { scope: "coupons:checkout" })).status).toBe(403);
+});
+
+test("turning a coupon off or on commits against the revision it previewed", async () => {
+  const created = await coupon("SUMMER");
+  const off = { action: "disable", couponId: created.couponId };
+  const stale = await admin("POST", "/coupons/previews", off);
+  expect(stale.json.preview).toMatchObject({ before: { disabled: false, revision: 1 }, after: { disabled: true } });
+  expect((await admin("PUT", `/coupons/${created.couponId}`, { expectedRevision: 1, globalCap: 20 })).status).toBe(200);
+  const rejected = await commit("cmd-stale", stale.json.confirmation.value, off);
+  expect(rejected.status).toBe(409);
+  expect(rejected.json).toEqual({ outcome: "rejected", commandId: "cmd-stale", rejection: { code: "REVISION_CONFLICT", message: expect.any(String) } });
+  expect((await admin("GET", `/coupons/${created.couponId}`)).json.coupon.disabled).toBe(false);
+
+  const fresh = await admin("POST", "/coupons/previews", off);
+  expect((await commit("cmd-off", fresh.json.confirmation.value, off)).json.coupon).toMatchObject({ disabled: true, revision: 3 });
+  expect((await admin("POST", "/coupons/previews", off)).json.error.code).toBe("NO_CHANGE");
+  const on = { action: "enable", couponId: created.couponId };
+  const enable = await admin("POST", "/coupons/previews", on);
+  expect((await commit("cmd-on", enable.json.confirmation.value, on)).json.coupon.disabled).toBe(false);
+});
+
+test("a preview is refused before anything is stored, and its confirmation expires after five minutes", async () => {
+  await coupon("TAKEN");
+  const taken = await admin("POST", "/coupons/previews", { action: "create", coupon: { code: " taken ", globalCap: 1, rule: rule() } });
+  expect(taken.json.error.code).toBe("CODE_IN_USE");
+  const badRule = await admin("POST", "/coupons/previews", { action: "create", coupon: { code: "BAD", globalCap: 1, rule: rule({ endsAt: "2026-01-01" }) } });
+  expect(badRule.status).toBe(400);
+  expect((await admin("POST", "/coupons/previews", { action: "delete", couponId: "x" })).status).toBe(400);
+  expect((await admin("POST", "/coupons/previews", { action: "disable", couponId: "missing" })).status).toBe(404);
+  expect((await admin("GET", "/coupons")).json.coupons).toHaveLength(1);
+
+  const request = { action: "create", coupon: { code: "LATE", globalCap: 1, rule: rule() } };
+  const previewed = await admin("POST", "/coupons/previews", request);
+  vi.useFakeTimers({ toFake: ["Date"], now: Date.now() + 5 * 60 * 1000 + 1 });
+  try {
+    expect((await commit("cmd-late", previewed.json.confirmation.value, request)).json.error.code).toBe("CONFIRMATION_EXPIRED");
+  } finally {
+    vi.useRealTimers();
+  }
+  expect((await admin("GET", "/coupons")).json.coupons).toHaveLength(1);
+});

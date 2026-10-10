@@ -6,16 +6,40 @@ import {
   createCheckoutCouponPort,
   createCouponAdmin,
   createCouponAttemptOwner,
+  normalizeCouponCode,
+  normalizeCouponRule,
   type CouponAttempt,
   type CouponCollection,
+  type CouponRecord,
+  type CouponRule,
 } from "./core.js";
 import { ok, ServiceError, toOutcome, type Outcome } from "./errors.js";
 import { parsePricedLines, pricedLineStorage } from "./priced-lines.js";
 
 /** How long an issued quote can still be reserved. */
 export const QUOTE_RETENTION_MS = 24 * 60 * 60 * 1000;
+/** How long an admin preview's confirmation value can be committed. */
+export const CONFIRMATION_TTL_MS = 5 * 60 * 1000;
+/** How long a committed admin command's result answers exact retries. */
+export const COMMAND_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** Ids that also fit a path segment, so a command can be looked up later. */
+const COMMAND_ID = /^[A-Za-z0-9._:-]{1,200}$/;
+/** Commit refusals that are final for a command; anything else may be retried. */
+const FINAL_ADMIN_REFUSALS = new Set(["INVALID_INPUT", "NOT_FOUND", "REVISION_CONFLICT", "CODE_IN_USE"]);
 
 type Body = Record<string, unknown>;
+
+/** What a preview froze: exactly the write its confirmation may commit. */
+type AdminAction =
+  | { action: "create"; coupon: { code: string; globalCap: number; disabled: boolean; rule: CouponRule } }
+  | { action: "disable" | "enable"; couponId: string; expectedRevision: number };
+
+/** A coupon as an operator sees it; redemption attempts stay out of admin answers about one change. */
+function couponSummary(coupon: CouponRecord) {
+  const { attempts: _attempts, ...summary } = coupon;
+  return summary;
+}
 
 function fields(body: unknown, required: readonly string[], optional: readonly string[] = []): Body {
   if (typeof body !== "object" || body === null || Array.isArray(body)) {
@@ -63,6 +87,21 @@ export class StoreCoupons extends DurableObject<Env> {
       coupon_id TEXT NOT NULL,
       value TEXT NOT NULL,
       issued_at INTEGER NOT NULL
+    )`);
+    sql.exec(`CREATE TABLE IF NOT EXISTS admin_previews (
+      confirmation TEXT PRIMARY KEY,
+      request TEXT NOT NULL,
+      action TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      command_id TEXT
+    )`);
+    sql.exec(`CREATE TABLE IF NOT EXISTS admin_commands (
+      command_id TEXT PRIMARY KEY,
+      confirmation TEXT NOT NULL,
+      request TEXT NOT NULL,
+      status INTEGER NOT NULL,
+      body TEXT NOT NULL,
+      committed_at INTEGER NOT NULL
     )`);
     this.collection = createSqlCouponCollection(sql);
   }
@@ -259,6 +298,129 @@ export class StoreCoupons extends DurableObject<Env> {
       const counts = await this.owner().getCounts(couponId);
       if (!counts) throw new ServiceError(404, "NOT_FOUND", "coupon was not found");
       return ok({ counts });
+    });
+  }
+
+  // Admin preview and confirm (coupons:admin). An operator tool previews a
+  // change, shows it, and commits only that frozen change with the preview's
+  // confirmation value and its own command ID. Retrying the same command ID
+  // returns the first result instead of writing twice.
+
+  private async adminAction(body: unknown): Promise<{ action: AdminAction; before: unknown; after: unknown }> {
+    const input = fields(body, ["action"], ["coupon", "couponId"]);
+    if (input.action === "create") {
+      const coupon = fields(fields(body, ["action", "coupon"]).coupon, ["code", "globalCap", "rule"], ["disabled"]);
+      const rule = fields(coupon.rule, ["discount", "appliesTo", "minimumEligibleMerchandise", "endsAt", "timeZone"],
+        ["ruleId", "selectedProductIds", "includeSaleItems", "startsAt"]);
+      if (!Number.isSafeInteger(coupon.globalCap) || (coupon.globalCap as number) < 0) {
+        throw new ServiceError(400, "INVALID_INPUT", "globalCap must be a safe integer >= 0");
+      }
+      if (coupon.disabled !== undefined && typeof coupon.disabled !== "boolean") {
+        throw new ServiceError(400, "INVALID_INPUT", "disabled must be a boolean");
+      }
+      normalizeCouponCode(coupon.code);
+      await this.requireFreeCode(coupon.code);
+      // The preview fixes the rule id and, when the caller leaves it out, the
+      // start time, so the commit writes exactly what was shown.
+      const normalized = normalizeCouponRule({
+        ...rule, ruleId: rule.ruleId ?? crypto.randomUUID(), startsAt: rule.startsAt ?? new Date().toISOString(),
+      }, 1);
+      const frozen = { code: text(coupon.code, "code", 100), globalCap: coupon.globalCap as number, disabled: coupon.disabled === true, rule: normalized };
+      return { action: { action: "create", coupon: frozen }, before: null, after: { ...frozen, normalizedCode: normalizeCouponCode(frozen.code) } };
+    }
+    if (input.action === "disable" || input.action === "enable") {
+      const couponId = text(fields(body, ["action", "couponId"]).couponId, "couponId");
+      const current = await this.admin().get(couponId);
+      if (!current) throw new ServiceError(404, "NOT_FOUND", "coupon was not found");
+      const disabled = input.action === "disable";
+      if (current.disabled === disabled) {
+        throw new ServiceError(409, "NO_CHANGE", `coupon is already ${disabled ? "disabled" : "enabled"}`);
+      }
+      const before = couponSummary(current);
+      return { action: { action: input.action, couponId, expectedRevision: current.revision }, before, after: { ...before, disabled } };
+    }
+    throw new ServiceError(400, "INVALID_INPUT", "action must be create, disable or enable");
+  }
+
+  private async applyAdminAction(action: AdminAction): Promise<CouponRecord> {
+    if (action.action === "create") {
+      await this.requireFreeCode(action.coupon.code);
+      return this.admin().create(action.coupon);
+    }
+    return this.admin().edit(action.couponId, action.expectedRevision, { disabled: action.action === "disable" });
+  }
+
+  async previewAdmin(body: unknown): Promise<Outcome> {
+    return this.run(async () => {
+      const { action, before, after } = await this.adminAction(body);
+      const now = Date.now();
+      const sql = this.ctx.storage.sql;
+      sql.exec("DELETE FROM admin_previews WHERE expires_at < ?", now - QUOTE_RETENTION_MS);
+      sql.exec("DELETE FROM admin_commands WHERE committed_at < ?", now - COMMAND_RETENTION_MS);
+      const bytes = crypto.getRandomValues(new Uint8Array(16));
+      const value = `cfm-${[...bytes].map(byte => byte.toString(16).padStart(2, "0")).join("")}`;
+      const expiresAt = now + CONFIRMATION_TTL_MS;
+      sql.exec(
+        "INSERT INTO admin_previews (confirmation, request, action, expires_at) VALUES (?, ?, ?, ?)",
+        value, canonicalJson(body), JSON.stringify(action), expiresAt,
+      );
+      return ok({
+        preview: { action: action.action, couponId: action.action === "create" ? null : action.couponId, before, after },
+        confirmation: { value, expiresAt: new Date(expiresAt).toISOString() },
+      });
+    });
+  }
+
+  async commitAdmin(body: unknown): Promise<Outcome> {
+    return this.run(async () => {
+      const input = fields(body, ["commandId", "confirmation", "request"]);
+      const commandId = text(input.commandId, "commandId");
+      if (!COMMAND_ID.test(commandId)) throw new ServiceError(400, "INVALID_INPUT", "commandId must use letters, digits, '.', '_', ':' or '-'");
+      const confirmation = text(input.confirmation, "confirmation");
+      const request = canonicalJson(input.request);
+      const sql = this.ctx.storage.sql;
+      const done = sql.exec<{ confirmation: string; request: string; status: number; body: string }>(
+        "SELECT confirmation, request, status, body FROM admin_commands WHERE command_id = ?", commandId,
+      ).toArray()[0];
+      if (done) {
+        if (done.confirmation !== confirmation || done.request !== request) {
+          throw new ServiceError(409, "CONFLICTING_COMMAND", "this command ID was already used for a different change");
+        }
+        return ok(JSON.parse(done.body), done.status);
+      }
+      const preview = sql.exec<{ request: string; action: string; expires_at: number; command_id: string | null }>(
+        "SELECT request, action, expires_at, command_id FROM admin_previews WHERE confirmation = ?", confirmation,
+      ).toArray()[0];
+      if (!preview) throw new ServiceError(409, "CONFIRMATION_NOT_FOUND", "no preview has this confirmation value");
+      if (preview.command_id) throw new ServiceError(409, "CONFIRMATION_ALREADY_USED", "this confirmation was already committed by another command");
+      if (preview.request !== request) throw new ServiceError(409, "CONFIRMATION_MISMATCH", "the change differs from the one this confirmation previewed");
+      if (Date.now() > preview.expires_at) throw new ServiceError(409, "CONFIRMATION_EXPIRED", "the preview expired; preview the change again");
+      let result: { status: number; body: unknown };
+      try {
+        const coupon = await this.applyAdminAction(JSON.parse(preview.action) as AdminAction);
+        result = { status: 200, body: { outcome: "committed", commandId, coupon: couponSummary(coupon) } };
+      } catch (error) {
+        const refusal = toOutcome(error);
+        // Storage trouble leaves the confirmation unused, so the same command can retry.
+        if (refusal.ok || !FINAL_ADMIN_REFUSALS.has(refusal.code)) return refusal;
+        result = { status: 409, body: { outcome: "rejected", commandId, rejection: { code: refusal.code, message: refusal.message } } };
+      }
+      sql.exec("UPDATE admin_previews SET command_id = ? WHERE confirmation = ?", commandId, confirmation);
+      sql.exec(
+        "INSERT INTO admin_commands (command_id, confirmation, request, status, body, committed_at) VALUES (?, ?, ?, ?, ?, ?)",
+        commandId, confirmation, request, result.status, JSON.stringify(result.body), Date.now(),
+      );
+      return ok(result.body, result.status);
+    });
+  }
+
+  async adminCommand(commandId: string): Promise<Outcome> {
+    return this.run(async () => {
+      const done = this.ctx.storage.sql.exec<{ status: number; body: string }>(
+        "SELECT status, body FROM admin_commands WHERE command_id = ?", commandId,
+      ).toArray()[0];
+      if (!done) throw new ServiceError(404, "NOT_FOUND", "no command with this ID was committed");
+      return ok(JSON.parse(done.body), done.status);
     });
   }
 }

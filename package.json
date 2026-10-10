@@ -4,6 +4,9 @@
   "description": "Hosted DinkusKit coupon service for Registry stores running DinkusKit Commerce on EmDash",
   "type": "module",
   "private": true,
+  "bin": {
+    "dinkus-coupons": "./bin/dinkus-coupons.mjs"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,7 +16,7 @@
     "commercePin": "eafd3e83120c70120ccbe0a8684770b2739a4edf"
   },
   "scripts": {
-    "test": "node --test tests/workflows/*.test.mjs",
+    "test": "node --test tests/workflows/*.test.mjs tests/cli/*.test.mjs",
     "test:runtime": "vitest run",
     "typecheck": "node scripts/typecheck.mjs",
     "check:pin": "node scripts/check-commerce-pin.mjs",
