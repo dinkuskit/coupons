@@ -1,9 +1,10 @@
+import { isRecord } from "../../shared/record.js";
 import type { ExactQuantity } from "./types.js";
 
 const EXACT_DECIMAL_PATTERN = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
 
 export function normalizeExactQuantity(value: unknown): ExactQuantity | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     return null;
   }
   const quantity = value as Record<string, unknown>;

@@ -38,3 +38,16 @@ export class CatalogError extends Error {
     this.status = STATUS_BY_CODE[code];
   }
 }
+
+export function catalogFail(code: CatalogErrorCode, message: string, options?: ErrorOptions): never {
+  throw new CatalogError(code, message, options);
+}
+
+/** Runs one storage call; any failure becomes STORAGE_UNAVAILABLE with the original cause. */
+export async function catalogStorage<T>(run: () => Promise<T>, message: string): Promise<T> {
+  try {
+    return await run();
+  } catch (cause) {
+    return catalogFail("STORAGE_UNAVAILABLE", message, { cause });
+  }
+}

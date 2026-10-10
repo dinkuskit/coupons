@@ -1,4 +1,5 @@
-import { ManagedSkuRegistrationError } from "./errors.js";
+import { isRecord } from "../../shared/record.js";
+import { ManagedSkuRegistrationError } from "./registration-errors.js";
 import type {
   ConcurrentManagedSkuRegistrationFeedback,
   ManagedSkuRegistrationClaimRecord,
@@ -7,7 +8,7 @@ import type {
 } from "./types.js";
 
 function asRecord(value: unknown, field: string): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     throw new ManagedSkuRegistrationError(
       "REGISTRATION_CLAIM_UNAVAILABLE",
       `${field} must be an object`,

@@ -1,11 +1,12 @@
+import { isRecord } from "../../shared/record.js";
 import {
-  loadCatalogItemManualAvailability,
   loadCatalogItemBackorderPolicy,
+  loadCatalogItemManualAvailability,
   resolveCatalogItemPrice,
   type CatalogItemRecord,
   type CatalogStorageRecord,
 } from "../catalog/kernel/index.js";
-import { normalizeStoredStockManagement } from "../inventory-provider/index.js";
+import { normalizeStoredStockManagement } from "../inventory-provider/kernel/index.js";
 import { loadStoreInventoryConfiguration } from "../inventory-setup/kernel/index.js";
 import { StorefrontAvailabilityError } from "./errors.js";
 import {
@@ -38,7 +39,7 @@ type ManagedCatalogItemRecord = Omit<CatalogItemRecord, "stockManagement"> & {
 };
 
 function normalizeInput(value: unknown): ResolveManagedStorefrontAvailabilityInput {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     throw new StorefrontAvailabilityError(
       "INVALID_INPUT",
       "storefront availability input must be an object",
@@ -52,29 +53,34 @@ function normalizeInput(value: unknown): ResolveManagedStorefrontAvailabilityInp
   ) {
     throw new StorefrontAvailabilityError(
       "INVALID_INPUT",
-      "storefront availability accepts only catalogItemId",
+      "storefront availability accepts catalogItemId only",
     );
   }
   return { catalogItemId: input.catalogItemId.trim() };
+}
+
+function availabilityResult(
+  catalogItemId: string,
+  status: StorefrontAvailabilityResult["status"],
+  sellable: boolean,
+  displayQuantity?: ExactQuantity,
+  listable = true,
+): StorefrontAvailabilityResult {
+  return {
+    schema: STOREFRONT_AVAILABILITY_RESULT_SCHEMA,
+    catalogItemId,
+    status,
+    sellable,
+    ...(displayQuantity ? { displayQuantity } : {}),
+    listable,
+  };
 }
 
 function unavailable(
   catalogItemId: string,
   listable = true,
 ): StorefrontAvailabilityResult {
-  return {
-    schema: STOREFRONT_AVAILABILITY_RESULT_SCHEMA,
-    catalogItemId,
-    status: "availability-unavailable",
-    sellable: false,
-    listable,
-  };
-}
-
-function withListable(
-  result: Omit<StorefrontAvailabilityResult, "listable">,
-): StorefrontAvailabilityResult {
-  return { ...result, listable: true };
+  return availabilityResult(catalogItemId, "availability-unavailable", false, undefined, listable);
 }
 
 async function hideOutOfStockEnabled(
@@ -89,13 +95,11 @@ async function applyOutOfStockListing(
   result: StorefrontAvailabilityResult,
 ): Promise<StorefrontAvailabilityResult> {
   if (result.status !== "out-of-stock" || !result.listable) return result;
-  let hide: boolean;
   try {
-    hide = await hideOutOfStockEnabled(storage);
+    if (!await hideOutOfStockEnabled(storage)) return result;
   } catch {
-    return { ...result, listable: false };
+    // An unreadable listing setting hides the item.
   }
-  if (!hide) return result;
   return { ...result, listable: false };
 }
 
@@ -141,7 +145,7 @@ function sameScope(
   value: unknown,
   expected: InventorySkuStockReadInput["scope"],
 ): boolean {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  if (!isRecord(value)) return false;
   const scope = value as Record<string, unknown>;
   return (
     scope.kind === "location" &&
@@ -154,7 +158,7 @@ function foundAvailableQuantity(
   value: unknown,
   expected: InventorySkuStockReadInput,
 ): ExactQuantity | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  if (!isRecord(value)) return null;
   const result = value as Record<string, unknown>;
   if (
     result.schema !== INVENTORY_SKU_STOCK_READ_RESULT_SCHEMA ||
@@ -170,7 +174,7 @@ function foundAvailableQuantity(
     return null;
   }
   const [location] = result.locations;
-  if (typeof location !== "object" || location === null || Array.isArray(location)) {
+  if (!isRecord(location)) {
     return null;
   }
   const locationRecord = location as Record<string, unknown>;
@@ -197,7 +201,7 @@ const STOCK_QUANTITY_FIELDS = [
 ] as const satisfies readonly (keyof InventoryStockQuantities)[];
 
 function normalizeStockQuantities(value: unknown): InventoryStockQuantities | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  if (!isRecord(value)) return null;
   const source = value as Record<string, unknown>;
   const quantities = Object.fromEntries(
     STOCK_QUANTITY_FIELDS.map((field) => [field, normalizeExactQuantity(source[field])]),
@@ -228,52 +232,25 @@ function availableResult(
   policy: StorefrontAvailabilityDisplayPolicy,
 ): StorefrontAvailabilityResult {
   if (exactQuantitySign(quantity.value) !== 1) {
-    return withListable({
-      schema: STOREFRONT_AVAILABILITY_RESULT_SCHEMA,
-      catalogItemId: item.itemId,
-      status: allowBackorders ? "available-on-backorder" : "out-of-stock",
-      sellable: allowBackorders,
-    });
+    return availabilityResult(item.itemId, allowBackorders ? "available-on-backorder" : "out-of-stock", allowBackorders);
   }
   if (policy.mode === "exact") {
-    return withListable({
-      schema: STOREFRONT_AVAILABILITY_RESULT_SCHEMA,
-      catalogItemId: item.itemId,
-      status: "in-stock",
-      sellable: true,
-      displayQuantity: quantity,
-    });
+    return availabilityResult(item.itemId, "in-stock", true, quantity);
   }
   if (
     policy.mode === "threshold" &&
     positiveQuantityAtOrBelowInteger(quantity.value, policy.threshold)
   ) {
-    return withListable({
-      schema: STOREFRONT_AVAILABILITY_RESULT_SCHEMA,
-      catalogItemId: item.itemId,
-      status: "low-stock",
-      sellable: true,
-      displayQuantity: quantity,
-    });
+    return availabilityResult(item.itemId, "low-stock", true, quantity);
   }
-  return withListable({
-    schema: STOREFRONT_AVAILABILITY_RESULT_SCHEMA,
-    catalogItemId: item.itemId,
-    status: "in-stock",
-    sellable: true,
-  });
+  return availabilityResult(item.itemId, "in-stock", true);
 }
 
 function manualResult(
   catalogItemId: string,
   status: "in-stock" | "out-of-stock" | "available-on-backorder",
 ): StorefrontAvailabilityResult {
-  return withListable({
-    schema: STOREFRONT_AVAILABILITY_RESULT_SCHEMA,
-    catalogItemId,
-    status,
-    sellable: status !== "out-of-stock",
-  });
+  return availabilityResult(catalogItemId, status, status !== "out-of-stock");
 }
 
 async function resolveManagedItem(

@@ -2,6 +2,7 @@ import { resolveCatalogItemPrice, parseMinorUnits, type Money } from "../catalog
 import { CouponAdminError, deepFreeze, normalizeCouponInstant } from "./admin.js";
 import { CouponRecordValidationError, validateCouponRecord } from "./validation.js";
 import type {
+  CouponNotApplicableReason,
   CouponCatalogStorage,
   CouponCartLine,
   CouponQuote,
@@ -13,6 +14,10 @@ const USD = "USD" as const;
 
 function error(message: string): never {
   throw new CouponAdminError("INVALID_INPUT", message);
+}
+
+function notApplicable(reason: CouponNotApplicableReason, message: string, minimum?: Money): never {
+  throw new CouponAdminError("INVALID_INPUT", message, { reason, ...(minimum ? { minimum } : {}) });
 }
 
 function money(minor: bigint): Money {
@@ -34,11 +39,11 @@ function validateQuantity(value: unknown, index: number): number {
 function isActive(coupon: CouponRecord, now: string): void {
   const instant = new Date(now);
   if (!Number.isFinite(instant.getTime())) error("now must be an ISO instant");
-  if (coupon.disabled) error("coupon is disabled");
+  // A turned-off coupon reads to the shopper like an unknown code.
+  if (coupon.disabled) notApplicable("not-found", "coupon is disabled");
   const nowMs = instant.getTime();
-  if (nowMs < Date.parse(coupon.rule.startsAt) || nowMs >= Date.parse(coupon.rule.endsAt)) {
-    error("coupon is not active at this instant");
-  }
+  if (nowMs < Date.parse(coupon.rule.startsAt)) notApplicable("not-started", "coupon is not active at this instant");
+  if (nowMs >= Date.parse(coupon.rule.endsAt)) notApplicable("expired", "coupon is not active at this instant");
 }
 
 function allocateProportionally(
@@ -126,8 +131,10 @@ export async function evaluateCoupon(
     .filter((line, index) => rawLines[index].eligible);
   const eligibleSubtotal = eligibleLines.reduce((sum, line) => sum + line.subtotal, 0n);
   const minimum = parseMinorUnits(coupon.rule.minimumEligibleMerchandise.minor);
+  // Nothing in the cart qualifies: the coupon never shows as applied at zero.
+  if (eligibleLines.length === 0) notApplicable("no-qualifying-items", "no cart line qualifies for the coupon");
   if (eligibleSubtotal < minimum) {
-    error("minimum eligible merchandise spend not met");
+    notApplicable("minimum-not-met", "minimum eligible merchandise spend not met", { ...coupon.rule.minimumEligibleMerchandise });
   }
   let discount = 0n;
   if (eligibleSubtotal > 0n) {

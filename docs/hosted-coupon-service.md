@@ -268,9 +268,22 @@ code taken from Commerce's own error types.
 | 405 | `METHOD_NOT_ALLOWED` |
 | 409 | `CAPACITY_EXHAUSTED`, `CONFLICTING_ATTEMPT`, `TERMINAL_CONFLICT`, `CONTENTION`, `QUOTE_NOT_ISSUED`, `REVISION_CONFLICT`, `CODE_IN_USE`, `NO_CHANGE`; at the confirmation gate `CONFIRMATION_NOT_FOUND`, `CONFIRMATION_EXPIRED`, `CONFIRMATION_ALREADY_USED`, `CONFIRMATION_MISMATCH`, `CONFLICTING_COMMAND` |
 | 413 | `BODY_TOO_LARGE` (request bodies over 64 KiB) |
-| 422 | `NOT_APPLICABLE` (inactive, disabled, minimum not met) |
+| 422 | `NOT_APPLICABLE` (the coupon does not apply to this cart; see below) |
 | 500 | `CORRUPTED_RECORD`, `STORAGE_UNAVAILABLE`, `INTERNAL` |
 | 503 | `NOT_CONFIGURED` (token issuer settings missing) |
+
+A `NOT_APPLICABLE` body also says why, from Commerce's own evaluator, so
+checkout can tell the shopper (commerce#86):
+
+```json
+{ "error": { "code": "NOT_APPLICABLE", "message": "...", "reason": "minimum-not-met",
+  "minimum": { "currency": "USD", "minor": "5000" } } }
+```
+
+`reason` is `not-found` (a turned-off coupon reads like an unknown code),
+`not-started`, `expired`, `minimum-not-met` (with `minimum`, the eligible
+merchandise the cart must reach) or `no-qualifying-items`. Commerce answers
+any other or missing reason with its `not-applicable` fallback.
 
 Commerce reads responses with the same bounded reader it uses for Payments.
 

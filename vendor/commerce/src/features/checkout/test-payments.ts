@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/record.js";
 import { CHECKOUT_PRICING_SCHEMA } from "./types.js";
 import { isCurrentPaymentRequest } from "./payment-window.js";
 import { normalizeMoney } from "../catalog/kernel/index.js";
@@ -17,13 +18,16 @@ export type ScopedPaymentFetch = (
   init: RequestInit,
 ) => Promise<Response>;
 
+export type TrustedTestPaymentsProviderId = "stripe" | "authorize_net";
+
 export interface TrustedTestPaymentsConfig {
   paymentsOrigin: string;
   siteId: string;
   commerceOrigin: string;
   bindingRef: string;
-  providerId: "stripe";
-  stripeAccountId: string;
+  providerId: TrustedTestPaymentsProviderId;
+  stripeAccountId?: string;
+  authorizeNetMerchantId?: string;
   credentialResolver: () => Promise<string>;
   fetch: ScopedPaymentFetch;
   pricingSchema?: typeof CHECKOUT_PRICING_SCHEMA;
@@ -37,7 +41,8 @@ export interface TrustedTestPaymentsConfig {
 interface PaymentBinding {
   bindingRef: string;
   providerId: string;
-  stripeAccountId: string;
+  stripeAccountId?: string;
+  authorizeNetMerchantId?: string;
   mode: string;
   ready?: boolean;
 }
@@ -46,36 +51,21 @@ function invalid(message: string): never {
   throw new Error(`Invalid trusted TEST Payments configuration: ${message}`);
 }
 
-function origin(value: string, name: string): string {
+// paymentsOrigin must be bare HTTPS; commerceOrigin may also be bare HTTP.
+function bareOrigin(value: string, name: string, http = false): string {
   let parsed: URL;
   try {
     parsed = new URL(value);
   } catch {
-    return invalid(`${name} must be an absolute URL`);
+    return invalid(`${name} must be an absolute ${http ? "HTTP(S) origin" : "URL"}`);
   }
-  if (parsed.protocol !== "https:" || parsed.username || parsed.password ||
-      parsed.pathname !== "/" && parsed.pathname !== "" ||
-      parsed.search || parsed.hash || !parsed.hostname) {
-    return invalid(`${name} must be a bare HTTPS origin`);
-  }
-  return parsed.origin;
-}
-
-function commerceOrigin(value: string): string {
-  let parsed: URL;
-  try {
-    parsed = new URL(value);
-  } catch {
-    return invalid("commerceOrigin must be an absolute HTTP(S) origin");
-  }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:" ||
+  const bare = `${name} must be a bare ${http ? "HTTP(S)" : "HTTPS"} origin`;
+  if (parsed.protocol !== "https:" && (!http || parsed.protocol !== "http:") ||
       parsed.username || parsed.password || parsed.pathname !== "/" && parsed.pathname !== "" ||
       parsed.search || parsed.hash || !parsed.hostname) {
-    return invalid("commerceOrigin must be a bare HTTP(S) origin");
+    return invalid(bare);
   }
-  const normalized = canonicalizeHttpOrigin(value);
-  if (!normalized) return invalid("commerceOrigin must be a bare HTTP(S) origin");
-  return normalized;
+  return http ? canonicalizeHttpOrigin(value) || invalid(bare) : parsed.origin;
 }
 
 function nonEmpty(value: string, name: string): string {
@@ -84,22 +74,32 @@ function nonEmpty(value: string, name: string): string {
 }
 
 function assertTestBinding(value: unknown, expected: TrustedTestPaymentsConfig): PaymentBinding {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+  if (!isRecord(value)) {
     throw new Error("Payments binding unavailable");
   }
   const binding = value as Partial<PaymentBinding>;
   if (binding.bindingRef !== expected.bindingRef ||
-      binding.providerId !== "stripe" ||
-      expected.providerId !== "stripe" ||
-      binding.stripeAccountId !== expected.stripeAccountId ||
+      binding.providerId !== expected.providerId ||
       binding.mode !== "test") {
     throw new Error("Payments binding mismatch");
+  }
+  if (expected.providerId === "stripe") {
+    if (binding.authorizeNetMerchantId !== undefined ||
+        binding.stripeAccountId !== expected.stripeAccountId) {
+      throw new Error("Payments binding mismatch");
+    }
+  } else {
+    if (binding.stripeAccountId !== undefined) throw new Error("Payments binding mismatch");
+    if (expected.authorizeNetMerchantId !== undefined &&
+        binding.authorizeNetMerchantId !== expected.authorizeNetMerchantId) {
+      throw new Error("Payments binding mismatch");
+    }
   }
   return binding as PaymentBinding;
 }
 
 function outcome(value: unknown): PaymentOutcome {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
+  if (!isRecord(value)) {
     throw new Error("Malformed Payments outcome");
   }
   const result = value as PaymentOutcome;
@@ -185,15 +185,27 @@ function exactRequest(
 function normalizedConfig(
   input: TrustedTestPaymentsConfig,
 ): Readonly<TrustedTestPaymentsConfig> {
-  if (input.providerId !== "stripe") invalid("providerId must be stripe");
-  if (input.pricingSchema !== undefined && input.pricingSchema !== CHECKOUT_PRICING_SCHEMA) invalid("unsupported pricing schema");
+  if (input.providerId !== "stripe" && input.providerId !== "authorize_net") {
+    invalid("providerId must be stripe or authorize_net");
+  }
+  if (input.pricingSchema !== undefined && input.pricingSchema !== CHECKOUT_PRICING_SCHEMA) {
+    invalid("unsupported pricing schema");
+  }
+  const stripe = input.providerId === "stripe";
+  if (stripe ? input.authorizeNetMerchantId !== undefined : input.stripeAccountId !== undefined) {
+    invalid(stripe ? "stripe must not set authorizeNetMerchantId" : "authorize_net must not set stripeAccountId");
+  }
   return Object.freeze({
-    paymentsOrigin: origin(input.paymentsOrigin, "paymentsOrigin"),
-    commerceOrigin: commerceOrigin(input.commerceOrigin),
+    paymentsOrigin: bareOrigin(input.paymentsOrigin, "paymentsOrigin"),
+    commerceOrigin: bareOrigin(input.commerceOrigin, "commerceOrigin", true),
     siteId: nonEmpty(input.siteId, "siteId"),
     bindingRef: nonEmpty(input.bindingRef, "bindingRef"),
-    providerId: "stripe",
-    stripeAccountId: nonEmpty(input.stripeAccountId, "stripeAccountId"),
+    providerId: input.providerId,
+    ...(stripe
+      ? { stripeAccountId: nonEmpty(input.stripeAccountId ?? "", "stripeAccountId") }
+      : input.authorizeNetMerchantId !== undefined
+        ? { authorizeNetMerchantId: nonEmpty(input.authorizeNetMerchantId, "authorizeNetMerchantId") }
+        : {}),
     credentialResolver: input.credentialResolver,
     fetch: input.fetch,
     pricingSchema: input.pricingSchema,

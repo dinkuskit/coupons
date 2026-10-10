@@ -42,7 +42,7 @@ const NO_STORE = { "cache-control": "no-store" };
 function respond(outcome: Outcome): Response {
   return outcome.ok
     ? Response.json(outcome.body, { status: outcome.status, headers: NO_STORE })
-    : Response.json({ error: { code: outcome.code, message: outcome.message } }, { status: outcome.status, headers: NO_STORE });
+    : Response.json({ error: { ...outcome.detail, code: outcome.code, message: outcome.message } }, { status: outcome.status, headers: NO_STORE });
 }
 
 const tooLarge = () => new ServiceError(413, "BODY_TOO_LARGE", `request bodies are limited to ${MAX_BODY_BYTES} bytes`);

@@ -157,6 +157,9 @@ export interface CouponRedemptionCounts {
   readonly remaining: number;
 }
 
+/** Why a coupon does not apply to a cart, for the storefront to word. */
+export type CouponNotApplicableReason = "not-found" | "not-started" | "expired" | "minimum-not-met" | "no-qualifying-items";
+
 export type CouponRedemptionErrorCode =
   | "INVALID_INPUT"
   | "CAPACITY_EXHAUSTED"

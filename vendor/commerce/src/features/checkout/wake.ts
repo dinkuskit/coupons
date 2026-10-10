@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/record.js";
 import { reconcileCheckout } from "./orchestrate.js";
 import type {
   CheckoutExecution,
@@ -101,7 +102,7 @@ export async function reconcilePaymentWakes(
 }
 
 function isWake(value: unknown): value is CommercePaymentWake {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  if (!isRecord(value)) return false;
   const wake = value as Partial<CommercePaymentWake>;
   return typeof wake.eventId === "string" && wake.eventId.trim() !== "" &&
     typeof wake.attemptId === "string" && wake.attemptId.trim() !== "" &&

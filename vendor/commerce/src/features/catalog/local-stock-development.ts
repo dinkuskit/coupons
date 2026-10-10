@@ -96,6 +96,12 @@ export function isLocalStockManagementEnabled(
   );
 }
 
+export function manageStockMutationsAllowed(
+  admission: LocalStockAdmissionContext | undefined,
+): boolean {
+  return admission !== undefined && isLocalStockManagementEnabled(admission);
+}
+
 export function readLocalStockAdmission(
   options: LocalStockHostOptions | undefined,
   ctx: { request?: { url?: string }; site?: { url?: string } },

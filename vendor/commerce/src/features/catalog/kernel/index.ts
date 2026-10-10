@@ -1,20 +1,13 @@
 export { createCatalogItem } from "../create-catalog-item.js";
 export type { CreateCatalogItemOptions } from "../create-catalog-item.js";
-export {
-  loadCatalogItemBackorderPolicy,
-  setCatalogItemBackorders,
-} from "../set-backorders.js";
+export { loadCatalogItemBackorderPolicy } from "../backorder-policy.js";
 export {
   loadCatalogItemManualAvailability,
   setCatalogItemManualAvailability,
 } from "../manual-availability.js";
 export {
-  clearCatalogItemRegularPrice,
-  clearCatalogItemSalePrice,
   loadCatalogItemPrice,
   resolveCatalogItemPrice,
-  setCatalogItemRegularPrice,
-  setCatalogItemSalePrice,
 } from "../price.js";
 export { CatalogError } from "../errors.js";
 export type { CatalogErrorCode } from "../errors.js";
@@ -37,25 +30,9 @@ export {
   saveCatalogProductPrices,
 } from "../product-admin.js";
 export {
-  LOCAL_STOCK_MANAGEMENT_OPTION,
-  isLocalLoopbackContext,
-  isLocalStockManagementEnabled,
-  isLoopbackUrl,
-  manageStockControlFromAdmission,
-  normalizeHostLocalStockOption,
-  readLocalStockAdmission,
-  trustedSiteUrlSources,
-} from "../local-stock-development.js";
-export type {
-  LocalStockAdmissionContext,
-  LocalStockHostOptions,
-  ManageStockControl,
-} from "../local-stock-development.js";
-export {
   admitV1CatalogCreateInput,
   admitV1CatalogPriceSaveInput,
   isManagedCatalogRecord,
-  manageStockMutationsAllowed,
   MANAGE_STOCK_LOCKED_MESSAGE,
   MANAGE_STOCK_UNAVAILABLE_MESSAGE,
 } from "../v1-stock-admission.js";
@@ -80,6 +57,7 @@ export {
   SET_CATALOG_ITEM_REGULAR_PRICE_ROUTE,
   SET_CATALOG_ITEM_SALE_PRICE_ROUTE,
   SET_CATALOG_ITEM_SKU_ROUTE,
+  SET_CATALOG_ITEM_IDENTIFIERS_ROUTE,
   ADD_CATALOG_VARIANT_OPTION_ROUTE,
   UPDATE_CATALOG_VARIANT_LABELS_ROUTE,
   BULK_SAVE_CATALOG_PRODUCT_PRICES_ROUTE,
@@ -115,6 +93,7 @@ export {
   CATALOG_FEATURE_ID,
   CATALOG_MANUAL_AVAILABILITY_COLLECTION,
   CATALOG_PRICES_COLLECTION,
+  PRODUCT_FEED_ELIGIBILITY_COLLECTION,
   CATALOG_UNIQUE_INDEXES,
   COMMERCE_CURRENCY_USD,
   COMMERCE_PLUGIN_ID,
@@ -155,13 +134,6 @@ export type {
 } from "../types.js";
 
 export {
-  PUBLIC_CATALOG_ITEM_ROUTE,
-  PUBLIC_CATALOG_ROUTE,
-  readPublicCatalog,
-  readPublicCatalogItem,
-} from "../public.js";
-export type { PublicCatalogProduct, PublicCatalogResponse } from "../public.js";
-export {
   CATALOG_GALLERY_LIMIT,
   CATALOG_MEDIA_COLLECTION,
   loadCatalogItemMedia,
@@ -178,18 +150,23 @@ export type {
   SaveCatalogItemMediaStorage,
 } from "../media.js";
 export {
-  COMMERCE_IMAGE_ENDPOINT_ROUTE,
-  COMMERCE_IMAGE_PRESETS,
-  COMMERCE_IMAGE_SIZES,
-  COMMERCE_IMAGE_SRCSET_WIDTHS,
-  commerceImageSrcset,
-  commerceImageTransformUrl,
   createProductImageProjector,
-} from "../media-projection.js";
+} from "../media-projector.js";
 export type {
   ProductImageProjector,
   ProductMediaItem,
   ProductMediaReader,
   PublicCatalogImage,
-} from "../media-projection.js";
+} from "../media-projector.js";
 export { SAVE_CATALOG_ITEM_MEDIA_ROUTE } from "../route-ids.js";
+export {
+  normalizeGtin,
+  normalizeIdentifierPatch,
+  projectIdentifiers,
+} from "../identifiers.js";
+export type { CatalogProductIdentifiers } from "../identifiers.js";
+export { setCatalogItemIdentifiers } from "../set-identifiers.js";
+export type {
+  SetCatalogItemIdentifiersInput,
+  SetCatalogItemIdentifiersResult,
+} from "../set-identifiers.js";

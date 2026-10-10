@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/record.js";
 import { StorefrontAvailabilityError } from "./errors.js";
 import type { StorefrontAvailabilityDisplayPolicy } from "./types.js";
 
@@ -12,7 +13,7 @@ function invalid(message: string): never {
 export function normalizeStorefrontAvailabilityPolicy(
   value: unknown,
 ): StorefrontAvailabilityDisplayPolicy {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     return invalid("storefront availability policy must be an object");
   }
   const policy = value as Record<string, unknown>;

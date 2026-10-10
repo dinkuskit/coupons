@@ -12,7 +12,7 @@ export function parseMinorUnits(minor: string): bigint {
   if (!MINOR_PATTERN.test(minor)) {
     throw new CatalogError(
       "INVALID_INPUT",
-      "money.minor must be a non-negative integer string without leading zeros",
+      "money.minor must be a non-negative integer string",
     );
   }
   const value = BigInt(minor);

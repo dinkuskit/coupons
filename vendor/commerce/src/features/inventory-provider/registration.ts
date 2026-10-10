@@ -1,9 +1,14 @@
+import { isRecord } from "../../shared/record.js";
 import { normalizeInventoryProviderBinding } from "./binding.js";
 import {
   normalizeManagedSkuRegistrationClaimRecord,
   sameManagedSkuRegistrationRequest,
 } from "./claim.js";
-import { ManagedSkuRegistrationError } from "./errors.js";
+import { ManagedSkuRegistrationError } from "./registration-errors.js";
+import {
+  normalizeManagedSkuRegistration,
+  normalizeManagedSkuRegistrationRejection,
+} from "./registration-normalize.js";
 import type {
   InventoryProviderBinding,
   InventorySkuIdentity,
@@ -20,11 +25,24 @@ import type {
   StockManagement,
 } from "./types.js";
 
+export {
+  normalizeManagedSkuRegistration,
+  normalizeManagedSkuRegistrationRejection,
+} from "./registration-normalize.js";
+
+function invalidRegistration(message: string): never {
+  throw new ManagedSkuRegistrationError("INVALID_REGISTRATION", message);
+}
+function invalidTransition(message: string): never {
+  throw new ManagedSkuRegistrationError("INVALID_TRANSITION", message);
+}
+function claimUnavailable(message: string): never {
+  throw new ManagedSkuRegistrationError("REGISTRATION_CLAIM_UNAVAILABLE", message);
+}
+
 function asRecord(value: unknown, field: string): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_REGISTRATION",
-      `${field} must be an object`,
+  if (!isRecord(value)) {
+    invalidRegistration(`${field} must be an object`,
     );
   }
   return value as Record<string, unknown>;
@@ -32,9 +50,7 @@ function asRecord(value: unknown, field: string): Record<string, unknown> {
 
 function asNonEmptyString(value: unknown, field: string): string {
   if (typeof value !== "string" || value.trim().length === 0) {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_REGISTRATION",
-      `${field} must be a non-empty string`,
+    invalidRegistration(`${field} must be a non-empty string`,
     );
   }
   return value.trim();
@@ -64,9 +80,7 @@ export function createManagedSkuRegistrationRequest(
     candidate.productTitle !== null &&
     typeof candidate.productTitle !== "string"
   ) {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_REGISTRATION",
-      "productTitle must be a string, null, or omitted",
+    invalidRegistration("productTitle must be a string, null, or omitted",
     );
   }
 
@@ -75,38 +89,6 @@ export function createManagedSkuRegistrationRequest(
     poolId: normalizedBinding.poolId,
     sku,
     displayNameIfNew: productTitle || sku,
-  };
-}
-
-export function normalizeManagedSkuRegistration(
-  value: unknown,
-): ManagedSkuRegistration {
-  const candidate = asRecord(value, "managed SKU registration");
-  const request = asRecord(
-    candidate.request,
-    "managed SKU registration request",
-  );
-
-  return {
-    operationId: asNonEmptyString(candidate.operationId, "operationId"),
-    request: {
-      poolId: asNonEmptyString(request.poolId, "request.poolId"),
-      sku: asNonEmptyString(request.sku, "request.sku"),
-      displayNameIfNew: asNonEmptyString(
-        request.displayNameIfNew,
-        "request.displayNameIfNew",
-      ),
-    },
-  };
-}
-
-export function normalizeManagedSkuRegistrationRejection(
-  value: unknown,
-): ManagedSkuRegistrationRejection {
-  const candidate = asRecord(value, "managed SKU registration rejection");
-  return {
-    code: asNonEmptyString(candidate.code, "rejection.code"),
-    message: asNonEmptyString(candidate.message, "rejection.message"),
   };
 }
 
@@ -122,9 +104,7 @@ export function normalizeManagedSkuRegistrationResult(
   }
 
   if (candidate.outcome !== "registered" && candidate.outcome !== "existing") {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_REGISTRATION",
-      "registration outcome must be registered, existing, or rejected",
+    invalidRegistration("registration outcome must be registered, existing, or rejected",
     );
   }
 
@@ -139,9 +119,7 @@ export function applyManagedSkuRegistrationResult(
   result: ManagedSkuRegistrationResult,
 ): ManagedStockManagement {
   if (current.mode !== "managed" || current.status !== "setup-pending") {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_TRANSITION",
-      "managed SKU registration result requires setup-pending stock state",
+    invalidTransition("managed SKU registration result requires setup-pending stock state",
     );
   }
 
@@ -160,9 +138,7 @@ export function applyManagedSkuRegistrationResult(
   }
 
   if (normalizedResult.inventorySku.sku !== registration.request.sku) {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_TRANSITION",
-      "Inventory returned a different SKU than Commerce requested",
+    invalidTransition("Inventory returned a different SKU than Commerce requested",
     );
   }
 
@@ -187,15 +163,11 @@ function normalizeExecution(
   const candidate = asRecord(value, "managed SKU registration execution");
   const provider = asRecord(candidate.provider, "inventory provider");
   if (typeof provider.registerManagedSku !== "function") {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_REGISTRATION",
-      "inventory provider must implement registerManagedSku",
+    invalidRegistration("inventory provider must implement registerManagedSku",
     );
   }
   if (typeof candidate.persist !== "function") {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_REGISTRATION",
-      "persist must be a function",
+    invalidRegistration("persist must be a function",
     );
   }
   return value;
@@ -208,9 +180,7 @@ function createOperationId(
     execution.createOperationId !== undefined &&
     typeof execution.createOperationId !== "function"
   ) {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_REGISTRATION",
-      "createOperationId must be a function when supplied",
+    invalidRegistration("createOperationId must be a function when supplied",
     );
   }
   const createId =
@@ -223,9 +193,7 @@ function normalizeStartExecution(
 ): StartManagedSkuRegistrationExecution {
   const execution = normalizeExecution(value) as StartManagedSkuRegistrationExecution;
   if (typeof execution.claim !== "function") {
-    throw new ManagedSkuRegistrationError(
-      "REGISTRATION_CLAIM_UNAVAILABLE",
-      "registration claim authority is unavailable",
+    claimUnavailable("registration claim authority is unavailable",
     );
   }
   asNonEmptyString(execution.catalogItemId, "catalogItemId");
@@ -258,9 +226,7 @@ export async function startManagedSkuRegistration(
     (current.status !== "setup-required" &&
       current.status !== "setup-needs-attention")
   ) {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_TRANSITION",
-      "managed SKU registration can start only from setup-required or setup-needs-attention",
+    invalidTransition("managed SKU registration can start only from setup-required or setup-needs-attention",
     );
   }
 
@@ -270,9 +236,7 @@ export async function startManagedSkuRegistration(
     current.status === "setup-needs-attention" &&
     normalizeManagedSkuRegistration(current.registration).operationId === operationId
   ) {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_TRANSITION",
-      "corrected registration requires a new operationId",
+    invalidTransition("corrected registration requires a new operationId",
     );
   }
 
@@ -299,16 +263,12 @@ export async function startManagedSkuRegistration(
     ) {
       throw error;
     }
-    throw new ManagedSkuRegistrationError(
-      "REGISTRATION_CLAIM_UNAVAILABLE",
-      "registration claim authority is unavailable",
+    claimUnavailable("registration claim authority is unavailable",
     );
   }
 
   if (claimResult.outcome !== "claimed" && claimResult.outcome !== "existing") {
-    throw new ManagedSkuRegistrationError(
-      "REGISTRATION_CLAIM_UNAVAILABLE",
-      "registration claim authority returned an invalid outcome",
+    claimUnavailable("registration claim authority returned an invalid outcome",
     );
   }
   const claim = normalizeManagedSkuRegistrationClaimRecord(claimResult.claim);
@@ -316,9 +276,7 @@ export async function startManagedSkuRegistration(
     claim.claimKey !== execution.claimKey ||
     claim.catalogItemId !== execution.catalogItemId
   ) {
-    throw new ManagedSkuRegistrationError(
-      "REGISTRATION_CLAIM_UNAVAILABLE",
-      "registration claim authority returned a different claim scope",
+    claimUnavailable("registration claim authority returned a different claim scope",
     );
   }
 
@@ -343,9 +301,7 @@ export async function startManagedSkuRegistration(
     };
   }
   if (claim.operationId !== pending.registration.operationId || !sameRequest) {
-    throw new ManagedSkuRegistrationError(
-      "REGISTRATION_CLAIM_UNAVAILABLE",
-      "registration claim authority changed the winning operation",
+    claimUnavailable("registration claim authority changed the winning operation",
     );
   }
 
@@ -360,9 +316,7 @@ export async function retryManagedSkuRegistration(
   execution: ManagedSkuRegistrationExecution,
 ): Promise<ManagedStockManagement> {
   if (current.mode !== "managed" || current.status !== "setup-pending") {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_TRANSITION",
-      "managed SKU registration retry requires setup-pending stock state",
+    invalidTransition("managed SKU registration retry requires setup-pending stock state",
     );
   }
 
@@ -380,9 +334,7 @@ export function confirmExistingManagedSku(
   current: StockManagement,
 ): ManagedStockManagement {
   if (current.mode !== "managed" || current.status !== "needs-review") {
-    throw new ManagedSkuRegistrationError(
-      "INVALID_TRANSITION",
-      "existing SKU confirmation requires needs-review stock state",
+    invalidTransition("existing SKU confirmation requires needs-review stock state",
     );
   }
 

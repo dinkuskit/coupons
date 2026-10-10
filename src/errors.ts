@@ -1,7 +1,10 @@
 import { CatalogError, CouponAdminError, CouponRedemptionError } from "./core.js";
 
+/** Extra fields an error body may carry next to its code and message. */
+export type ErrorDetail = Readonly<Record<string, unknown>>;
+
 export class ServiceError extends Error {
-  constructor(readonly status: number, readonly code: string, message: string) {
+  constructor(readonly status: number, readonly code: string, message: string, readonly detail?: ErrorDetail) {
     super(message);
     this.name = "ServiceError";
   }
@@ -10,7 +13,7 @@ export class ServiceError extends Error {
 /** A result that crosses the Durable Object RPC boundary as plain data. */
 export type Outcome =
   | { readonly ok: true; readonly status: number; readonly body: unknown }
-  | { readonly ok: false; readonly status: number; readonly code: string; readonly message: string };
+  | { readonly ok: false; readonly status: number; readonly code: string; readonly message: string; readonly detail?: ErrorDetail };
 
 const REDEMPTION_STATUS: Record<string, number> = {
   INVALID_INPUT: 400,
@@ -32,7 +35,7 @@ const ADMIN_STATUS: Record<string, number> = {
 /** Maps the coupon core's own error types to the HTTP contract's status and code. */
 export function toOutcome(error: unknown): Outcome {
   if (error instanceof ServiceError) {
-    return { ok: false, status: error.status, code: error.code, message: error.message };
+    return { ok: false, status: error.status, code: error.code, message: error.message, ...(error.detail ? { detail: error.detail } : {}) };
   }
   if (error instanceof CouponRedemptionError) {
     return { ok: false, status: REDEMPTION_STATUS[error.code] ?? 500, code: error.code, message: error.message };

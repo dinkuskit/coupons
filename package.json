@@ -13,7 +13,7 @@
     "url": "git+https://github.com/dinkuskit/coupons.git"
   },
   "dinkuskit": {
-    "commercePin": "eafd3e83120c70120ccbe0a8684770b2739a4edf"
+    "commercePin": "4f193f97343b397d876c0fdeb6c64843fd0a0dbd"
   },
   "scripts": {
     "test": "node --test tests/workflows/*.test.mjs tests/cli/*.test.mjs",

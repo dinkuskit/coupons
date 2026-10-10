@@ -292,7 +292,7 @@ export function createCouponAttemptOwner(collection: CouponCollection): CouponAt
         required(proof.orderId, "orderId"); required(proof.receiptId, "receiptId");
         if (!recordObject(proof.overallPayableTotal) ||
             Object.keys(proof.overallPayableTotal).length !== 2 || proof.overallPayableTotal.currency !== "USD" || proof.overallPayableTotal.minor !== "0") {
-          fail("free-order proof must have canonical zero USD total");
+          fail("free-order proof needs canonical zero USD total");
         }
       }
 
@@ -300,7 +300,7 @@ export function createCouponAttemptOwner(collection: CouponCollection): CouponAt
         const item = find(current, aid);
         if (proof.couponId !== item.couponId || proof.ruleId !== item.ruleId ||
             proof.ruleVersion !== item.ruleVersion || proof.quoteId !== item.quoteId) {
-          terminalConflict("free-order proof does not match frozen attempt");
+          terminalConflict("free-order proof mismatches frozen attempt");
         }
         if (item.quote.overallPayableTotal.minor !== "0" || item.providerSessionId) {
           terminalConflict("attempt is not a free order");

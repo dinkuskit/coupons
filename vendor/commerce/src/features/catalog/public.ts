@@ -1,7 +1,7 @@
 import type { PluginContext } from "emdash/plugin";
 import { resolveCatalogItemPrice } from "./price.js";
 import { loadCatalogItemMedia, type CatalogMediaStorage } from "./media.js";
-import { createProductImageProjector, type PublicCatalogImage } from "./media-projection.js";
+import { createProductImageProjector, type PublicCatalogImage } from "./media-projector.js";
 import {
   loadStorefrontPlaceholderImage,
   resolveStorefrontAvailability,
@@ -17,6 +17,13 @@ import { bindGuestCheckoutRuntime, SANDBOX_GUEST_CHECKOUT_STORAGE } from "../che
 import type { StorefrontAvailabilityResult } from "../storefront-availability/kernel/index.js";
 
 function unavailable(): never { throw new Error("Catalog unavailable"); }
+function optionalIds(item: { gtin?: string; mpn?: string; brand?: string }) {
+  return {
+    ...(item.gtin ? { gtin: item.gtin } : {}),
+    ...(item.mpn ? { mpn: item.mpn } : {}),
+    ...(item.brand ? { brand: item.brand } : {}),
+  };
+}
 
 export const PUBLIC_CATALOG_ROUTE = "catalog/public";
 export const PUBLIC_CATALOG_ITEM_ROUTE = "catalog/public/item";
@@ -29,6 +36,10 @@ export interface PublicCatalogProduct {
   /** Primary image, the store placeholder (placeholder: true), or null when neither resolves. The host maps ids to URLs. */
   readonly image: PublicCatalogImage | null;
   readonly gallery: readonly PublicCatalogImage[];
+  /** Optional merchant identifiers; omitted when unset. Never invented. */
+  readonly gtin?: string;
+  readonly mpn?: string;
+  readonly brand?: string;
   readonly variants?: {
     readonly schema: "dinkuskit.commerce.product-variants/v1";
     readonly productId: string;
@@ -115,6 +126,7 @@ async function projectPublicCatalogProduct(
       availability: { status: availability.status, sellable: !variant.product.options.length && availability.sellable, listable: members.some((member) => member.availability.listable) },
       image,
       gallery,
+      ...optionalIds(item),
       variants: {
         schema: variant.product.schema,
         productId: variant.product.productId,
@@ -136,6 +148,7 @@ async function projectPublicCatalogProduct(
     },
     image,
     gallery,
+    ...optionalIds(item),
   };
 }
 
