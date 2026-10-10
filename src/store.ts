@@ -33,9 +33,14 @@ type Body = Record<string, unknown>;
 /** What a preview froze: exactly the write its confirmation may commit. */
 type AdminAction =
   | { action: "create"; coupon: { code: string; globalCap: number; disabled: boolean; rule: CouponRule } }
-  | { action: "disable" | "enable"; couponId: string; expectedRevision: number };
+  | { action: "disable" | "enable"; couponId: string; expectedRevision: number }
+  | { action: "edit"; couponId: string; expectedRevision: number; changes: { code?: string; globalCap?: number; rule?: CouponRule } };
 
-/** A coupon as an operator sees it; redemption attempts stay out of admin answers about one change. */
+/** Rule fields an edit may replace; each one replaces the current value whole. The rule id stays. */
+const EDITABLE_RULE_FIELDS = ["discount", "appliesTo", "selectedProductIds", "includeSaleItems",
+  "minimumEligibleMerchandise", "startsAt", "endsAt", "timeZone"] as const;
+
+/** A coupon as an operator sees it. Redemption attempts stay out of every admin answer; counts cover them. */
 function couponSummary(coupon: CouponRecord) {
   const { attempts: _attempts, ...summary } = coupon;
   return summary;
@@ -260,13 +265,13 @@ export class StoreCoupons extends DurableObject<Env> {
   }
 
   async listCoupons(): Promise<Outcome> {
-    return this.run(async () => ok({ coupons: await this.admin().list() }));
+    return this.run(async () => ok({ coupons: (await this.admin().list()).map(couponSummary) }));
   }
 
   async createCoupon(body: unknown): Promise<Outcome> {
     return this.run(async () => {
       await this.requireFreeCode(fields(body, ["code", "globalCap", "rule"], ["disabled"]).code);
-      return ok({ coupon: await this.admin().create(body) }, 201);
+      return ok({ coupon: couponSummary(await this.admin().create(body)) }, 201);
     });
   }
 
@@ -274,7 +279,7 @@ export class StoreCoupons extends DurableObject<Env> {
     return this.run(async () => {
       const coupon = await this.admin().get(couponId);
       if (!coupon) throw new ServiceError(404, "NOT_FOUND", "coupon was not found");
-      return ok({ coupon });
+      return ok({ coupon: couponSummary(coupon) });
     });
   }
 
@@ -282,14 +287,14 @@ export class StoreCoupons extends DurableObject<Env> {
     return this.run(async () => {
       const { expectedRevision, ...changes } = fields(body, ["expectedRevision"], ["code", "globalCap", "disabled", "rule"]);
       await this.requireFreeCode(changes.code, couponId);
-      return ok({ coupon: await this.admin().edit(couponId, expectedRevision as number, changes) });
+      return ok({ coupon: couponSummary(await this.admin().edit(couponId, expectedRevision as number, changes)) });
     });
   }
 
   async disableCoupon(couponId: string, body: unknown): Promise<Outcome> {
     return this.run(async () => {
       const { expectedRevision } = fields(body, ["expectedRevision"]);
-      return ok({ coupon: await this.admin().disable(couponId, expectedRevision as number) });
+      return ok({ coupon: couponSummary(await this.admin().disable(couponId, expectedRevision as number)) });
     });
   }
 
@@ -307,7 +312,7 @@ export class StoreCoupons extends DurableObject<Env> {
   // returns the first result instead of writing twice.
 
   private async adminAction(body: unknown): Promise<{ action: AdminAction; before: unknown; after: unknown }> {
-    const input = fields(body, ["action"], ["coupon", "couponId"]);
+    const input = fields(body, ["action"], ["coupon", "couponId", "changes"]);
     if (input.action === "create") {
       const coupon = fields(fields(body, ["action", "coupon"]).coupon, ["code", "globalCap", "rule"], ["disabled"]);
       const rule = fields(coupon.rule, ["discount", "appliesTo", "minimumEligibleMerchandise", "endsAt", "timeZone"],
@@ -339,13 +344,54 @@ export class StoreCoupons extends DurableObject<Env> {
       const before = couponSummary(current);
       return { action: { action: input.action, couponId, expectedRevision: current.revision }, before, after: { ...before, disabled } };
     }
-    throw new ServiceError(400, "INVALID_INPUT", "action must be create, disable or enable");
+    if (input.action === "edit") {
+      const edit = fields(body, ["action", "couponId", "changes"]);
+      const couponId = text(edit.couponId, "couponId");
+      const changes = fields(edit.changes, [], ["code", "globalCap", "rule"]);
+      if (Object.keys(changes).length === 0) throw new ServiceError(400, "INVALID_INPUT", "changes must name code, globalCap or rule");
+      if (changes.globalCap !== undefined && (!Number.isSafeInteger(changes.globalCap) || (changes.globalCap as number) < 0)) {
+        throw new ServiceError(400, "INVALID_INPUT", "globalCap must be a safe integer >= 0");
+      }
+      const current = await this.admin().get(couponId);
+      if (!current) throw new ServiceError(404, "NOT_FOUND", "coupon was not found");
+      const frozen: { code?: string; globalCap?: number; rule?: CouponRule } = {};
+      if (changes.code !== undefined) {
+        normalizeCouponCode(changes.code);
+        frozen.code = text(changes.code, "code", 100);
+        await this.requireFreeCode(frozen.code, couponId);
+      }
+      if (changes.globalCap !== undefined) frozen.globalCap = changes.globalCap as number;
+      if (changes.rule !== undefined) {
+        // The preview fixes the whole next rule, so the commit writes exactly what was shown.
+        const { version: _version, ...currentRule } = current.rule;
+        frozen.rule = normalizeCouponRule({ ...currentRule, ...fields(changes.rule, [], EDITABLE_RULE_FIELDS) }, current.rule.version + 1);
+      }
+      const before = couponSummary(current);
+      const after = {
+        ...before,
+        ...(frozen.code === undefined ? {} : { code: frozen.code, normalizedCode: normalizeCouponCode(frozen.code) }),
+        ...(frozen.globalCap === undefined ? {} : { globalCap: frozen.globalCap }),
+        ...(frozen.rule === undefined ? {} : { rule: frozen.rule }),
+        revision: current.revision + 1,
+      };
+      const terms = (coupon: typeof before) => {
+        const { version: _version, ...rule } = coupon.rule;
+        return canonicalJson({ code: coupon.code, globalCap: coupon.globalCap, rule });
+      };
+      if (terms(after) === terms(before)) throw new ServiceError(409, "NO_CHANGE", "the edit changes nothing");
+      return { action: { action: "edit", couponId, expectedRevision: current.revision, changes: frozen }, before, after };
+    }
+    throw new ServiceError(400, "INVALID_INPUT", "action must be create, edit, disable or enable");
   }
 
   private async applyAdminAction(action: AdminAction): Promise<CouponRecord> {
     if (action.action === "create") {
       await this.requireFreeCode(action.coupon.code);
       return this.admin().create(action.coupon);
+    }
+    if (action.action === "edit") {
+      await this.requireFreeCode(action.changes.code, action.couponId);
+      return this.admin().edit(action.couponId, action.expectedRevision, action.changes);
     }
     return this.admin().edit(action.couponId, action.expectedRevision, { disabled: action.action === "disable" });
   }

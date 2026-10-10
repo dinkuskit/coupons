@@ -1,0 +1,12 @@
+{
+  // The Coupons admin plugin against EmDash's real plugin types, plus the
+  // tests that drive it. The service code those tests load keeps its own
+  // stricter check in tsconfig.json.
+  "compilerOptions": {
+    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler",
+    "strict": true, "skipLibCheck": true, "noEmit": true,
+    "types": ["@cloudflare/workers-types"], "lib": ["ES2022"],
+    "paths": { "emdash": ["./src/types/emdash.d.ts"] }
+  },
+  "include": ["plugins/coupons-admin/src/**/*.ts", "tests/plugin/**/*.ts", "tests/runtime/admin-plugin.test.ts", "worker-configuration.d.ts"]
+}

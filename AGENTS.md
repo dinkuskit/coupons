@@ -66,6 +66,12 @@ Every plugin from this repository, including the Coupons admin plugin, must be
 Registry-enabled and sandboxed with no native escape. The hosted service is
 not an EmDash plugin and is not bound by the plugin file limit.
 
+`plugins/coupons-admin` is the Coupons admin plugin. It talks only to the
+hosted service at `coupons.dinkuskit.com` and changes coupons only through the
+service's preview and confirm routes. Before pushing a change to it, also run
+`npm run test:plugin` and `npm run build:plugin`; the second fails if the
+backend passes the Registry's 128 KiB per-file limit.
+
 The Commerce source at
 `8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a pinned historical reference
 only. The service's Commerce pin is set in its own PR.

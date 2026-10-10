@@ -8,5 +8,8 @@
       "emdash/plugin": ["./src/types/emdash.d.ts"]
     }
   },
-  "include": ["src/**/*.ts", "tests/runtime/**/*.ts", "worker-configuration.d.ts"]
+  "include": ["src/**/*.ts", "tests/runtime/**/*.ts", "worker-configuration.d.ts"],
+  // The Coupons admin plugin builds against EmDash's real types, so it and the
+  // tests that load it are checked by tsconfig.plugin.json instead.
+  "exclude": ["tests/runtime/admin-plugin.test.ts"]
 }

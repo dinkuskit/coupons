@@ -9,7 +9,9 @@ landed in [commerce#82](https://github.com/dinkuskit/commerce/pull/82). The
 `dinkus-coupons` command-line tool ([CLI-SPEC.md](CLI-SPEC.md)) and the
 admin preview and confirm routes below were approved by the project owner on
 2026-10-10 (GrillTrack decisions `coupons-cli-v1` and
-`coupon-admin-preview-confirm`); the admin plugin is not built yet.
+`coupon-admin-preview-confirm`). The Coupons admin plugin and the edit
+preview it needs were approved by the project owner on 2026-10-10 (GrillTrack
+decisions `coupon-admin-plugin-v1` and `coupon-admin-edit-preview`).
 
 ## Why this exists
 
@@ -60,7 +62,7 @@ This is the same pattern Payments and Inventory already use.
                                       coupon records + redemption attempts
                 ▲
                 │  HTTPS, scoped JWT
- Merchant ──▶ dinkus-coupons CLI, then Coupons admin (small Registry plugin)
+ Merchant ──▶ Coupons admin (small Registry plugin) or dinkus-coupons CLI
 ```
 
 - **Coupons service** (this repository): a Cloudflare Worker with one Durable
@@ -72,8 +74,10 @@ This is the same pattern Payments and Inventory already use.
   lines it has already priced and receives a discount quote. It never forwards
   browser-supplied prices or totals.
 - **Coupons admin** is a separate small Registry plugin with the admin screens
-  (list, create, edit, disable, counts). It calls the same service. The
-  `dinkus-coupons` operations CLI comes first (the project owner chose that
+  (list, create, edit, turn off and on, uses left), in
+  [plugins/coupons-admin](../plugins/coupons-admin/README.md). It calls the
+  same service with a `coupons:admin` pass saved in its encrypted settings.
+  The `dinkus-coupons` operations CLI came first (the project owner chose that
   order on 2026-10-10); it follows the create-cli pattern of the other
   DinkusKit CLIs and ships outside every plugin bundle.
 
@@ -204,30 +208,38 @@ Rules the service enforces:
 Bodies are the inputs Commerce's `CouponAdminPort` already validates: create
 takes `{ code, globalCap, rule, disabled? }`, and edit changes any of `code`,
 `globalCap`, `disabled` and `rule`. A code already used by another coupon in
-the store is `409 CODE_IN_USE`.
+the store is `409 CODE_IN_USE`. Every admin answer gives coupons without their
+redemption attempts, so a busy coupon's answer stays small; `counts` reports
+how many uses are consumed, held and left.
 
 #### Preview and confirm (`coupons:admin`)
 
-Scripts and agents change coupons in two steps, so a person approves the exact
-change before it happens. The CLI uses only these routes for changes; the
-direct routes above stay for the admin plugin, which decides when it is built
-whether to use them or these.
+Scripts, agents and the admin plugin change coupons in two steps, so a person
+approves the exact change before it happens. The CLI and the Coupons admin
+plugin use only these routes for changes; the direct routes above stay for
+tests and for tools that run their own review.
 
 | Method and path | Body | Success |
 | --- | --- | --- |
-| `POST /coupons/previews` | `{ action: "create", coupon }` or `{ action: "disable" \| "enable", couponId }` | `200 { preview, confirmation }` |
+| `POST /coupons/previews` | `{ action: "create", coupon }`, `{ action: "edit", couponId, changes }`, or `{ action: "disable" \| "enable", couponId }` | `200 { preview, confirmation }` |
 | `POST /coupons/commands` | `{ commandId, confirmation, request }` | `200 { outcome: "committed", commandId, coupon }` |
 | `GET /coupons/commands/{commandId}` | | the stored result, or `404 NOT_FOUND` |
 
 - A create `coupon` is `{ code, globalCap, rule, disabled? }`. The rule's
   `ruleId` and `startsAt` may be left out; the service fills them in (a new
   id, and the preview time) and the preview shows them.
+- An edit's `changes` names at least one of `code`, `globalCap` and `rule`.
+  `rule` holds only the fields to replace (`discount`, `appliesTo`,
+  `selectedProductIds`, `includeSaleItems`, `minimumEligibleMerchandise`,
+  `startsAt`, `endsAt`, `timeZone`); each replaces the current value whole,
+  the rule keeps its id, and its version goes up by one. The preview fixes
+  the whole next rule, so the commit writes exactly what was shown. Turning
+  a coupon off or on stays its own action.
 - `preview` is `{ action, couponId, before, after }`: `before` is the current
-  coupon (`null` for create) and `after` what the change would make. Coupon
-  summaries never include redemption attempts.
+  coupon (`null` for create) and `after` what the change would make.
 - `confirmation` is `{ value, expiresAt }`. The value is single-use, lasts
   five minutes, and is bound to the store, the exact request (compared as
-  canonical JSON), and for disable and enable the coupon's revision at
+  canonical JSON), and for edit, disable and enable the coupon's revision at
   preview time.
 - `commandId` is chosen by the caller (`[A-Za-z0-9._:-]`, at most 200).
   Repeating the same command id, confirmation and request returns the first
@@ -240,7 +252,8 @@ whether to use them or these.
   uses up the confirmation. A refusal at the confirmation gate stores
   nothing.
 - A preview of a change that would do nothing (turning off a coupon that is
-  already off) is `409 NO_CHANGE`.
+  already off, or an edit to the values the coupon already has) is
+  `409 NO_CHANGE`.
 
 ### Errors
 

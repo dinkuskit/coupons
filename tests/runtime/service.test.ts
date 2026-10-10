@@ -138,6 +138,11 @@ test("a full paid checkout reserves, attaches the payment session and consumes o
   expect((await call("GET", `/redemptions/attempt-1?couponId=${couponId}`)).json.attempt.state).toBe("consumed");
   const counts = await call("GET", `/coupons/${couponId}/counts`, undefined, { scope: "coupons:admin" });
   expect(counts.json.counts).toMatchObject({ cap: 10, consumed: 1, pending: 0, remaining: 9 });
+  // Admin reads stay small however busy a coupon gets: counts cover the attempts.
+  const listed = await call("GET", "/coupons", undefined, { scope: "coupons:admin" });
+  const shown = await call("GET", `/coupons/${couponId}`, undefined, { scope: "coupons:admin" });
+  expect(Object.hasOwn(listed.json.coupons[0], "attempts")).toBe(false);
+  expect(Object.hasOwn(shown.json.coupon, "attempts")).toBe(false);
 });
 
 test("reserve accepts only an unchanged quote this service issued", async () => {
@@ -237,6 +242,61 @@ test("turning a coupon off or on commits against the revision it previewed", asy
   const on = { action: "enable", couponId: created.couponId };
   const enable = await admin("POST", "/coupons/previews", on);
   expect((await commit("cmd-on", enable.json.confirmation.value, on)).json.coupon.disabled).toBe(false);
+});
+
+test("an edit previews the whole next coupon and commits exactly that", async () => {
+  const created = await coupon("AUTUMN", 10, { discount: { kind: "fixed", amount: usd("500") } });
+  const endsAt = new Date(Date.now() + 2 * hour).toISOString();
+  const request = { action: "edit", couponId: created.couponId, changes: { code: "Fall", globalCap: 3, rule: { endsAt, includeSaleItems: true } } };
+  const previewed = await admin("POST", "/coupons/previews", request);
+  expect(previewed.status).toBe(200);
+  const { preview, confirmation } = previewed.json;
+  expect(preview).toMatchObject({
+    action: "edit", couponId: created.couponId,
+    before: { code: "AUTUMN", globalCap: 10, revision: 1, rule: { version: 1, includeSaleItems: false } },
+    after: { code: "Fall", normalizedCode: "FALL", globalCap: 3, revision: 2,
+      rule: { ruleId: created.rule.ruleId, version: 2, endsAt, includeSaleItems: true, discount: { kind: "fixed", amount: usd("500") } } },
+  });
+  expect((await admin("GET", `/coupons/${created.couponId}`)).json.coupon.code).toBe("AUTUMN");
+
+  const committed = await commit("cmd-edit", confirmation.value, request);
+  expect(committed.status).toBe(200);
+  expect(committed.json.coupon).toMatchObject({ ...preview.after, updatedAt: expect.any(String) });
+  expect(await commit("cmd-edit", confirmation.value, request)).toEqual(committed);
+  expect((await admin("GET", `/coupons/${created.couponId}`)).json.coupon).toMatchObject({ code: "Fall", revision: 2, rule: { version: 2 } });
+});
+
+test("an edit is refused when it changes nothing, takes a used code, or the coupon moved on", async () => {
+  const created = await coupon("WINTER");
+  await coupon("TAKEN");
+  const edit = (changes: unknown) => admin("POST", "/coupons/previews", { action: "edit", couponId: created.couponId, changes });
+  expect((await edit({ code: "WINTER", globalCap: 10, rule: { timeZone: "UTC" } })).json.error.code).toBe("NO_CHANGE");
+  expect((await edit({ code: " taken " })).json.error.code).toBe("CODE_IN_USE");
+  expect((await edit({})).status).toBe(400);
+  expect((await edit({ disabled: true })).status).toBe(400);
+  expect((await edit({ rule: { ruleId: "other" } })).status).toBe(400);
+  expect((await edit({ rule: { endsAt: "2026-01-01" } })).status).toBe(400);
+  expect((await edit({ globalCap: -1 })).status).toBe(400);
+  expect((await admin("POST", "/coupons/previews", { action: "edit", couponId: "missing", changes: { globalCap: 1 } })).status).toBe(404);
+  // Changing only the letter case keeps the code the coupon already owns.
+  expect((await edit({ code: "Winter" })).status).toBe(200);
+
+  const request = { action: "edit", couponId: created.couponId, changes: { globalCap: 99 } };
+  const stale = await admin("POST", "/coupons/previews", request);
+  expect((await admin("PUT", `/coupons/${created.couponId}`, { expectedRevision: 1, globalCap: 20 })).status).toBe(200);
+  const rejected = await commit("cmd-stale-edit", stale.json.confirmation.value, request);
+  expect(rejected.status).toBe(409);
+  expect(rejected.json.rejection.code).toBe("REVISION_CONFLICT");
+  expect((await admin("GET", `/coupons/${created.couponId}`)).json.coupon.globalCap).toBe(20);
+
+  // A code taken between preview and commit is refused at commit.
+  const rename = { action: "edit", couponId: created.couponId, changes: { code: "LATER" } };
+  const renamed = await admin("POST", "/coupons/previews", rename);
+  await coupon("later");
+  const blocked = await commit("cmd-rename", renamed.json.confirmation.value, rename);
+  expect(blocked.status).toBe(409);
+  expect(blocked.json.rejection.code).toBe("CODE_IN_USE");
+  expect((await admin("GET", `/coupons/${created.couponId}`)).json.coupon.code).toBe("WINTER");
 });
 
 test("a preview is refused before anything is stored, and its confirmation expires after five minutes", async () => {

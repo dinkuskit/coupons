@@ -84,7 +84,8 @@ dinkus-coupons commands resolve <command-id>
   cannot apply it.
 - `coupons enable` turns a coupon back on.
 - `coupons edit` is planned. It exits `1` with `not_implemented` and sends
-  nothing until the service previews edits.
+  nothing. The service previews edits (`action: "edit"`) since the Coupons
+  admin plugin needed them; the CLI command comes in a later change.
 
 Deleting a coupon is not offered: coupon records hold the redemption history
 that caps depend on. Turn a coupon off instead.
