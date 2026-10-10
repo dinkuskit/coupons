@@ -1,8 +1,13 @@
 import type { StorageCollection } from "emdash";
+import type { PaidOrderReceiver } from "../../handoffs/paid-order.js";
 import type { CatalogFulfillment, Money } from "../catalog/kernel/index.js";
-import type { InventoryProviderBinding } from "../inventory-provider/index.js";
+import type { InventoryProviderBinding } from "../inventory-provider/kernel/index.js";
 import type { StorefrontAvailabilityResolverStorage, ResolveStorefrontAvailabilityExecution } from "../storefront-availability/kernel/index.js";
-import type { CheckoutCouponPort, CouponQuoteSnapshot } from "../coupons/index.js";
+import type { CheckoutCouponPort, CouponNotApplicableReason, CouponQuoteSnapshot } from "../coupons/index.js";
+import type {
+  CheckoutContactRequirementsLoader,
+  CheckoutContactSnapshot,
+} from "../checkout-contact/index.js";
 
 export const CHECKOUT_FEATURE_ID = "dinkus.checkout";
 export interface CartLine { catalogItemId: string; quantity: number }
@@ -51,10 +56,20 @@ export interface StockRequest {
   binding: InventoryProviderBinding;
   requirements: StockRequirement[];
 }
+/**
+ * Success may name the tickets this reserve already minted, one per stock line.
+ * A string "reserved" is the previous adapter and carries no ids.
+ * Rejection and an unknown outcome stay strings.
+ */
+export type CheckoutReserveResult =
+  | "reserved"
+  | "rejected"
+  | "unknown"
+  | { readonly outcome: "reserved"; readonly ticketIds: readonly string[] };
 /** Durable whole-basket operation. Never substitute a local stock ledger. */
 export interface CheckoutInventoryPort {
   /** Same operation/request forever; terminal rejection has no holds and cannot later succeed. */
-  reserve(request: StockRequest): Promise<"reserved" | "rejected" | "unknown">;
+  reserve(request: StockRequest): Promise<CheckoutReserveResult>;
   /** Idempotent terminal fence, including an in-flight reserve. No subsequent reacquisition. */
   release(request: StockRequest): Promise<"released" | "unknown">;
 }
@@ -148,6 +163,11 @@ interface CommerceOrderBase {
   total: Money;
   pricing?: CheckoutPricingSnapshot;
   variantSelections?: readonly CheckoutVariantSelectionSnapshot[];
+  /** Inventory hold ids from reserve. Absent when the adapter returned a string. */
+  ticketIds?: readonly string[];
+  contactSnapshot?: CheckoutContactSnapshot;
+  /** When Checkout recorded the payment. Absent on orders paid before it was recorded. */
+  paidAt?: string;
 }
 export type CommerceOrder =
   | (CommerceOrderBase & { paymentId: string })
@@ -160,13 +180,18 @@ export interface CheckoutAttempt {
   phase: "reserving" | "paying" | "releasing" | "released" | "paid";
   session?: PaymentSession;
   order?: CommerceOrder;
+  /** Copied onto the order when payment completes. Not an order number in Inventory. */
+  ticketIds?: readonly string[];
   variantSelections?: readonly CheckoutVariantSelectionSnapshot[];
+  contactSnapshot?: CheckoutContactSnapshot;
   /** Durable canonical reason for releasing; host support or elapsed time is never a reason. */
   paymentReleaseReason?: "never-started" | "not-created" | "expired-unpaid";
   coupon?: {
     couponId: string;
     code: string;
     status: "unreserved" | "pending" | "released" | "consumed";
+    /** Why the coupon owner refused the hold before payment; the attempt released without a charge. */
+    refused?: CouponUnavailableReason;
   };
 }
 /** One durable aggregate per trusted cart. Preserve past attempts and paid receipts. */
@@ -197,7 +222,10 @@ export interface CheckoutExecution {
   paymentAssociations?: CheckoutPaymentAssociationPort;
   createAttemptId?: () => string;
   now?: () => number;
+  loadCheckoutContactRequirements?: CheckoutContactRequirementsLoader;
   pricing?: TrustedCheckoutPricing;
+  /** Orders' receiving side of the paid-order handoff, bound by the entry. */
+  paidOrders?: PaidOrderReceiver;
 }
 
 export interface TrustedShippingConfiguration {
@@ -234,11 +262,21 @@ export type GuestCheckoutState =
   | "recoverable-failure"
   | "released-retry";
 
+/**
+ * Why a coupon can't be used. The storefront writes the shopper's words.
+ * not-applicable is the fallback when the coupon owner gives no finer reason.
+ */
+export type CouponUnavailableReason = CouponNotApplicableReason | "not-applicable" | "used-up" | "try-later";
+
+/** A coupon that can't be used, as the guest sees it; minimum comes with minimum-not-met. */
+export interface CouponUnavailable { reason: CouponUnavailableReason; minimum?: Money }
+
 export type GuestCheckoutErrorCode =
   | "CAPABILITY_DENIED"
   | "CHECKOUT_FROZEN"
   | "CHECKOUT_NOT_FOUND"
   | "CONTENTION"
+  | "COUPON_UNAVAILABLE"
   | "INVALID_CART"
   | "INVENTORY_UNAVAILABLE"
   | "ORIGIN_DENIED"
@@ -283,7 +321,7 @@ export interface GuestCheckoutProjection {
   redirectUrl: string | null;
   order: GuestCheckoutOrderSummary | null;
   retryAfter: string | null;
-  unavailable: { code: GuestCheckoutErrorCode; message: string } | null;
+  unavailable: ({ code: GuestCheckoutErrorCode; message: string } & Partial<CouponUnavailable>) | null;
 }
 
 export interface GuestCapabilityPresentation {
@@ -321,6 +359,7 @@ export interface GuestCheckoutHostOptions {
   createCapabilityId?: () => string;
   createAttemptId?: () => string;
   now?: () => number;
+  loadCheckoutContactRequirements?: CheckoutContactRequirementsLoader;
   /** Coupon storage is bound from this installation, never supplied by the host. */
   pricing?: Omit<TrustedCheckoutPricing, "coupons">;
 }
@@ -340,6 +379,8 @@ export interface GuestCheckoutRuntime {
   checkoutSiteUrl?: string;
   paymentAssociations?: CheckoutPaymentAssociationPort;
   pricing?: TrustedCheckoutPricing;
+  /** Bound by the entry from Orders; the host cannot supply it. */
+  paidOrders?: PaidOrderReceiver;
   host: GuestCheckoutHostOptions;
 }
 
@@ -348,9 +389,10 @@ export type GuestCheckoutResult =
       ok: true;
       capabilityId: string;
       capability?: GuestCapabilityPresentation;
+      contactRequirements?: { requirePhoneNumber: boolean };
       checkout: GuestCheckoutProjection;
     }
   | {
       ok: false;
-      error: { code: GuestCheckoutErrorCode; message: string };
+      error: { code: GuestCheckoutErrorCode; message: string } & Partial<CouponUnavailable>;
     };

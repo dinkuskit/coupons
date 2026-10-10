@@ -12,6 +12,7 @@ import type {
   StorefrontOutOfStockListingStorage,
 } from "../storefront-availability/kernel/index.js";
 import type { CheckoutCouponPort } from "../coupons/index.js";
+import type { PaidOrderReceiver } from "../../handoffs/paid-order.js";
 import { GuestCheckoutError } from "./errors.js";
 import { admitGuestCheckoutWrite } from "./origin-admission.js";
 import { resolveTrustedSiteOrigin } from "./site-scope.js";
@@ -75,6 +76,8 @@ export function bindGuestCheckoutRuntime(
     host?: GuestCheckoutHostOptions;
     /** Entry-bound coupon support; the host cannot supply it. */
     coupons?: CheckoutCouponPort;
+    /** Entry-bound Orders receiver for the paid-order handoff. */
+    paidOrders?: PaidOrderReceiver;
   } = {},
 ): GuestCheckoutRuntime {
   const constructorSiteUrl = options.constructorSiteUrl ?? options.host?.siteUrl;
@@ -110,6 +113,7 @@ export function bindGuestCheckoutRuntime(
     topLevelSiteUrl,
     checkoutSiteUrl,
     host: options.host ?? {},
+    ...(options.paidOrders ? { paidOrders: options.paidOrders } : {}),
     ...(options.host?.pricing ? { pricing: {
       ...options.host.pricing,
       coupons: options.coupons,
@@ -131,6 +135,7 @@ export function admitBoundGuestCheckoutRuntime(
   names: GuestCheckoutStorageNames,
   host: GuestCheckoutHostOptions = {},
   coupons?: CheckoutCouponPort,
+  paidOrders?: PaidOrderReceiver,
 ): GuestCheckoutRuntime {
   const constructorSiteUrl = host.siteUrl;
   const runtimeSiteUrl = ctx.site?.url;
@@ -156,5 +161,6 @@ export function admitBoundGuestCheckoutRuntime(
     checkoutSiteUrl,
     host,
     coupons,
+    paidOrders,
   });
 }

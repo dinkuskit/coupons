@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/record.js";
 import type {
   CatalogItemRecord,
   CatalogStorageRecord,
@@ -18,16 +19,21 @@ import type {
   StoreInventoryConfigurationRecord,
 } from "./types.js";
 
+function setupError(
+  code: ConstructorParameters<typeof InventorySetupError>[0],
+  message: string,
+  options?: ErrorOptions,
+): never {
+  throw new InventorySetupError(code, message, options);
+}
+
 interface ConfigureInventoryInput {
   catalogItemId: string;
 }
 
 function normalizeInput(value: unknown): ConfigureInventoryInput {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new InventorySetupError(
-      "INVALID_INPUT",
-      "Configure Inventory input must be an object",
-    );
+  if (!isRecord(value)) {
+    setupError("INVALID_INPUT", "Configure Inventory input must be an object");
   }
   const input = value as Record<string, unknown>;
   if (
@@ -36,10 +42,7 @@ function normalizeInput(value: unknown): ConfigureInventoryInput {
     typeof input.catalogItemId !== "string" ||
     input.catalogItemId.trim().length === 0
   ) {
-    throw new InventorySetupError(
-      "INVALID_INPUT",
-      "Configure Inventory accepts only catalogItemId",
-    );
+    setupError("INVALID_INPUT", "Configure Inventory accepts only catalogItemId");
   }
   return { catalogItemId: input.catalogItemId.trim() };
 }
@@ -52,23 +55,14 @@ async function loadCatalogItem(
   try {
     stored = await storage.get(catalogItemId);
   } catch (error) {
-    throw new InventorySetupError(
-      "STORAGE_UNAVAILABLE",
-      "catalog item lookup failed",
-      { cause: error },
-    );
+    setupError("STORAGE_UNAVAILABLE", "catalog item lookup failed",
+      { cause: error });
   }
   if (stored === null || stored.recordKind !== "catalog-item") {
-    throw new InventorySetupError(
-      "CATALOG_ITEM_NOT_FOUND",
-      "catalog item was not found",
-    );
+    setupError("CATALOG_ITEM_NOT_FOUND", "catalog item was not found");
   }
   if (stored.itemId !== catalogItemId) {
-    throw new InventorySetupError(
-      "STORAGE_UNAVAILABLE",
-      "stored catalog item identity does not match its key",
-    );
+    setupError("STORAGE_UNAVAILABLE", "stored catalog item identity does not match its key");
   }
   return {
     ...stored,
@@ -108,23 +102,14 @@ async function persistManagedCatalogState(
   try {
     latest = await storage.getVersioned(catalogItemId);
   } catch (error) {
-    throw new InventorySetupError(
-      "STORAGE_UNAVAILABLE",
-      "catalog inventory state update failed",
-      { cause: error },
-    );
+    setupError("STORAGE_UNAVAILABLE", "catalog inventory state update failed",
+      { cause: error });
   }
   if (latest === null || latest.value.recordKind !== "catalog-item") {
-    throw new InventorySetupError(
-      "CATALOG_ITEM_NOT_FOUND",
-      "catalog item was not found",
-    );
+    setupError("CATALOG_ITEM_NOT_FOUND", "catalog item was not found");
   }
   if (normalizeStoredStockManagement(latest.value.stockManagement).mode !== "managed") {
-    throw new InventorySetupError(
-      "MANAGE_STOCK_REQUIRED",
-      "Manage Stock was disabled before Inventory setup finished",
-    );
+    setupError("MANAGE_STOCK_REQUIRED", "Manage Stock was disabled before Inventory setup finished");
   }
   const next: CatalogItemRecord = {
     ...latest.value,
@@ -134,17 +119,11 @@ async function persistManagedCatalogState(
   try {
     applied = await storage.compareAndSet(catalogItemId, latest.revision, next);
   } catch (error) {
-    throw new InventorySetupError(
-      "STORAGE_UNAVAILABLE",
-      "catalog inventory state update failed",
-      { cause: error },
-    );
+    setupError("STORAGE_UNAVAILABLE", "catalog inventory state update failed",
+      { cause: error });
   }
   if (!applied.applied) {
-    throw new InventorySetupError(
-      "STORAGE_UNAVAILABLE",
-      "catalog inventory state update lost to a concurrent write",
-    );
+    setupError("STORAGE_UNAVAILABLE", "catalog inventory state update lost to a concurrent write");
   }
   return next;
 }
@@ -163,27 +142,18 @@ async function resolveProvider(
   execution: ConfigureInventoryExecution,
 ) {
   if (typeof execution.resolveProvider !== "function") {
-    throw new InventorySetupError(
-      "PROVIDER_UNAVAILABLE",
-      "configured Inventory provider is not installed in this runtime",
-    );
+    setupError("PROVIDER_UNAVAILABLE", "configured Inventory provider is not installed in this runtime");
   }
   try {
     const provider = await execution.resolveProvider(configuration);
     if (!provider) {
-      throw new InventorySetupError(
-        "PROVIDER_UNAVAILABLE",
-        "configured Inventory provider is not installed in this runtime",
-      );
+      setupError("PROVIDER_UNAVAILABLE", "configured Inventory provider is not installed in this runtime");
     }
     return provider;
   } catch (error) {
     if (error instanceof InventorySetupError) throw error;
-    throw new InventorySetupError(
-      "PROVIDER_UNAVAILABLE",
-      "configured Inventory provider could not be resolved",
-      { cause: error },
-    );
+    setupError("PROVIDER_UNAVAILABLE", "configured Inventory provider could not be resolved",
+      { cause: error });
   }
 }
 
@@ -195,10 +165,7 @@ export async function configureCatalogItemInventory(
   const input = normalizeInput(rawInput);
   const item = await loadCatalogItem(storage.catalog, input.catalogItemId);
   if (item.stockManagement.mode !== "managed") {
-    throw new InventorySetupError(
-      "MANAGE_STOCK_REQUIRED",
-      "Manage Stock must be enabled before configuring Inventory",
-    );
+    setupError("MANAGE_STOCK_REQUIRED", "Manage Stock must be enabled before configuring Inventory");
   }
 
   const configuration = await loadStoreInventoryConfiguration(storage.configurations);

@@ -3,10 +3,17 @@ import { createCouponAttemptOwner, type CouponAttemptPort } from "./composition.
 import { evaluateCoupon } from "./evaluator.js";
 import type { CouponCatalogStorage, CouponCartLine, CouponCollection, CouponQuote } from "./types.js";
 
+/** The redemption lifecycle checkout drives for an attempt that carries a coupon. */
+export type CheckoutCouponOwner = Pick<
+  CouponAttemptPort,
+  "reserve" | "releaseUnstarted" | "attachProviderSession" | "reconcile" | "reconcileFreeOrder"
+>;
+
 /**
- * The coupon operations checkout composes, bound to one installation's own
- * coupon storage. An entry that does not bind one has no coupon support, and
- * none of this module is reachable from it.
+ * The coupon operations checkout composes. The native entry binds one to the
+ * installation's own coupon storage; the Registry entry binds one to the
+ * hosted coupon service when the owner configures it. An entry that binds
+ * neither has no coupon support.
  */
 export interface CheckoutCouponPort {
   /** Null when no coupon has this normalized code. */
@@ -15,7 +22,7 @@ export interface CheckoutCouponPort {
     storage: CouponCatalogStorage,
     input: { readonly quoteId: string; readonly lines: readonly CouponCartLine[]; readonly now: string },
   ): Promise<{ couponId: string; quote: CouponQuote } | null>;
-  owner(): CouponAttemptPort;
+  owner(): CheckoutCouponOwner;
 }
 
 export function createCheckoutCouponPort(collection: CouponCollection): CheckoutCouponPort {

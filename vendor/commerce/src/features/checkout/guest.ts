@@ -1,10 +1,16 @@
+import { isRecord, sortedKeys } from "../../shared/record.js";
 import { GuestCheckoutError, guestCheckoutErrorMessage } from "./errors.js";
 import { startCheckout, reconcileCheckout } from "./orchestrate.js";
+import { CouponUnavailableError } from "./pricing.js";
 import { authorizeGuestCapability, mintGuestCapability, readGuestCapabilityHeader } from "./capability.js";
 import { projectGuestCheckout, projectPreparedGuestCheckout } from "./project.js";
 import { createCheckoutStore } from "./storage.js";
 import { reconcilePaymentWakes } from "./wake.js";
 import { resolveTrustedSiteOrigin } from "./site-scope.js";
+import {
+  CheckoutContactError,
+  type CheckoutContactRequirements,
+} from "../checkout-contact/index.js";
 import type {
   CartLine,
   CheckoutAttempt,
@@ -18,14 +24,8 @@ function fail(code: GuestCheckoutError["code"]): never {
   throw new GuestCheckoutError(code);
 }
 
-const MAX_GUEST_CART_LINES = 100;
-const MAX_GUEST_CART_ITEM_ID_LENGTH = 256;
-const MAX_GUEST_QUANTITY = 1_000_000;
-const MAX_GUEST_COUPON_LENGTH = 128;
-const MAX_GUEST_ATTEMPT_ID_LENGTH = 256;
-
 function asObject(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) fail("INVALID_CART");
+  if (!isRecord(value)) fail("INVALID_CART");
   return value as Record<string, unknown>;
 }
 
@@ -36,20 +36,21 @@ export function admitGuestCheckoutPrepareInput(raw: unknown): void {
 
 export function admitGuestCheckoutStartInput(raw: unknown): CartLine[] {
   const input = asObject(raw);
-  if (Object.keys(input).join() !== "lines") fail("INVALID_CART");
-  if (!Array.isArray(input.lines) || input.lines.length === 0 || input.lines.length > MAX_GUEST_CART_LINES) {
+  const keys = sortedKeys(input);
+  if (!["contact,lines", "lines"].includes(keys)) fail("INVALID_CART");
+  if (!Array.isArray(input.lines) || input.lines.length === 0 || input.lines.length > 100) {
     fail("INVALID_CART");
   }
   return input.lines.map((line) => {
-    if (!line || typeof line !== "object" || Array.isArray(line)) fail("INVALID_CART");
-    const keys = Object.keys(line).sort().join();
+    if (!isRecord(line)) fail("INVALID_CART");
+    const keys = sortedKeys(line);
     if (keys !== "catalogItemId,quantity") fail("INVALID_CART");
     const catalogItemId = (line as { catalogItemId: unknown }).catalogItemId;
     const quantity = (line as { quantity: unknown }).quantity;
     if (typeof catalogItemId !== "string" || !catalogItemId.trim() ||
-        catalogItemId.length > MAX_GUEST_CART_ITEM_ID_LENGTH) fail("INVALID_CART");
+        catalogItemId.length > 256) fail("INVALID_CART");
     if (!Number.isSafeInteger(quantity) || (quantity as number) <= 0 ||
-        (quantity as number) > MAX_GUEST_QUANTITY) fail("INVALID_CART");
+        (quantity as number) > 1_000_000) fail("INVALID_CART");
     return { catalogItemId: catalogItemId.trim(), quantity: quantity as number };
   });
 }
@@ -57,33 +58,62 @@ export function admitGuestCheckoutStartInput(raw: unknown): CartLine[] {
 export function admitGuestCheckoutPricingStartInput(raw: unknown): CartLine[] | { lines: CartLine[]; couponCode?: string } {
   const input = asObject(raw);
   const keys = Object.keys(input).sort();
-  if (keys.join() !== "lines" && keys.join() !== "couponCode,lines") fail("INVALID_CART");
+  if (!["contact,lines", "contact,couponCode,lines", "lines", "couponCode,lines"].includes(keys.join())) fail("INVALID_CART");
   const lines = admitGuestCheckoutStartInput({ lines: input.lines });
-  if (keys.join() === "lines") return lines;
+  if (!Object.hasOwn(input, "couponCode")) return lines;
   if (typeof input.couponCode !== "string" || !input.couponCode.trim() ||
-      input.couponCode.length > MAX_GUEST_COUPON_LENGTH) fail("INVALID_CART");
+      input.couponCode.length > 128) fail("INVALID_CART");
   return { lines, couponCode: input.couponCode.trim() };
 }
 
 export function admitGuestCheckoutStatusInput(raw: unknown): { attemptId?: string } {
   const input = raw === undefined ? {} : asObject(raw);
-  const inputKeys = Object.keys(input).sort().join();
-  if (inputKeys === "") return {};
-  const wakeOnly = inputKeys === "wake";
-  const attemptOnly = inputKeys === "attemptId";
-  const documentedHint = inputKeys === "attemptId,wake";
-  if (!wakeOnly && !attemptOnly && !documentedHint) fail("INVALID_CART");
-  if ((wakeOnly || documentedHint) && input.wake !== true) fail("INVALID_CART");
-  if (attemptOnly || documentedHint) {
-    if (typeof input.attemptId !== "string" || !input.attemptId.trim() ||
-        input.attemptId.length > MAX_GUEST_ATTEMPT_ID_LENGTH) fail("INVALID_CART");
-    return { attemptId: input.attemptId.trim() };
+  const keys = sortedKeys(input);
+  if (keys === "") return {};
+  if (keys !== "wake" && keys !== "attemptId" && keys !== "attemptId,wake") fail("INVALID_CART");
+  if (keys.includes("wake") && input.wake !== true) fail("INVALID_CART");
+  if (!keys.includes("attemptId")) return {};
+  if (typeof input.attemptId !== "string" || !input.attemptId.trim() ||
+      input.attemptId.length > 256) fail("INVALID_CART");
+  return { attemptId: input.attemptId.trim() };
+}
+
+function contactRequirements(
+  runtime: GuestCheckoutRuntime,
+): Promise<CheckoutContactRequirements> {
+  if (!runtime.host.loadCheckoutContactRequirements) {
+    return Promise.reject(new CheckoutContactError("REQUIREMENTS_UNAVAILABLE"));
   }
-  return {};
+  return runtime.host.loadCheckoutContactRequirements().then((value) => {
+    if (
+      !isRecord(value) ||
+      sortedKeys(value) !== "requirePhoneNumber,revision,shippingCountries" ||
+      typeof value.requirePhoneNumber !== "boolean" ||
+      !Array.isArray(value.shippingCountries) ||
+      (value.revision !== null && typeof value.revision !== "string")
+    ) {
+      throw new CheckoutContactError("REQUIREMENTS_UNAVAILABLE");
+    }
+    return { requirePhoneNumber: value.requirePhoneNumber, shippingCountries: [...value.shippingCountries], revision: value.revision };
+  }).catch((error) => {
+    if (error instanceof CheckoutContactError) throw error;
+    throw new CheckoutContactError("REQUIREMENTS_UNAVAILABLE");
+  });
 }
 
 function mapCheckoutError(error: unknown): never {
   if (error instanceof GuestCheckoutError) throw error;
+  if (error instanceof CheckoutContactError) {
+    if (error.code === "REQUIREMENTS_UNAVAILABLE") fail("UNAVAILABLE");
+    // Delivery problems say what to fix; other contact problems stay generic.
+    if (error.code.startsWith("DELIVERY_")) throw new GuestCheckoutError("INVALID_CART", error.message);
+    fail("INVALID_CART");
+  }
+  if (error instanceof CouponUnavailableError) {
+    const mapped = new GuestCheckoutError("COUPON_UNAVAILABLE");
+    mapped.coupon = error.coupon;
+    throw mapped;
+  }
   const message = error instanceof Error ? error.message : "";
   if (/Invalid cart|Invalid quantity|Zero-total/i.test(message)) fail("INVALID_CART");
   if (/frozen/i.test(message)) fail("CHECKOUT_FROZEN");
@@ -112,7 +142,9 @@ export function executionOf(runtime: GuestCheckoutRuntime) {
     resolvePayments: runtime.host.resolvePayments!,
     createAttemptId: runtime.host.createAttemptId,
     now: runtime.host.now,
+    loadCheckoutContactRequirements: runtime.host.loadCheckoutContactRequirements,
     pricing: runtime.pricing,
+    paidOrders: runtime.paidOrders,
   };
 }
 
@@ -137,22 +169,26 @@ export async function reconcileGuestPaymentWakes(
   return reconcilePaymentWakes(executionOf(runtime), runtime.paymentAssociations, wakes);
 }
 
+function nowSeconds(runtime: GuestCheckoutRuntime): number {
+  return runtime.host.now?.() ?? Math.floor(Date.now() / 1000);
+}
+
 function currentAttempt(attempts: CheckoutAttempt[]): CheckoutAttempt | undefined {
   return attempts[attempts.length - 1];
 }
 
+function guestSafeError(error: GuestCheckoutError): GuestCheckoutResult {
+  return { ok: false, error: { code: error.code, message: error.message, ...structuredClone(error.coupon) } };
+}
+
 function guestSafeResult(error: unknown): GuestCheckoutResult {
-  if (error instanceof GuestCheckoutError) {
-    return { ok: false, error: { code: error.code, message: error.message } };
-  }
+  if (error instanceof GuestCheckoutError) return guestSafeError(error);
   try {
     mapCheckoutError(error);
   } catch (mapped) {
-    if (mapped instanceof GuestCheckoutError) {
-      return { ok: false, error: { code: mapped.code, message: mapped.message } };
-    }
+    if (mapped instanceof GuestCheckoutError) return guestSafeError(mapped);
   }
-  return { ok: false, error: { code: "UNAVAILABLE", message: guestCheckoutErrorMessage("UNAVAILABLE") } };
+  return guestCheckoutFailure("UNAVAILABLE");
 }
 
 export async function prepareGuestCheckout(
@@ -161,11 +197,13 @@ export async function prepareGuestCheckout(
 ): Promise<GuestCheckoutResult> {
   try {
     admitGuestCheckoutPrepareInput(input);
+    const requirements = await contactRequirements(runtime);
     const minted = await mintGuestCapability(runtime);
     return {
       ok: true,
       capabilityId: minted.record.capabilityId,
       capability: minted.presentation,
+      contactRequirements: { requirePhoneNumber: requirements.requirePhoneNumber },
       checkout: projectPreparedGuestCheckout(),
     };
   } catch (error) {
@@ -196,8 +234,13 @@ export async function startGuestCheckout(
     const previous = existing ? currentAttempt(existing.record.attempts) : undefined;
     const retryAfter =
       previous?.phase === "released" ? previous.attemptId : undefined;
-    const attempt = await startCheckout(executionOf(runtime), authorized.cartId, admitted, retryAfter);
-    const currentNow = runtime.host.now?.() ?? Math.floor(Date.now() / 1000);
+    const attempt = await startCheckout(
+      executionOf(runtime),
+      authorized.cartId,
+      { ...(input as Record<string, unknown>), lines: Array.isArray(admitted) ? admitted : admitted.lines },
+      retryAfter,
+    );
+    const currentNow = nowSeconds(runtime);
     return projected(authorized.capabilityId, attempt, currentNow);
   } catch (error) {
     return guestSafeResult(error);
@@ -215,7 +258,7 @@ export async function statusGuestCheckout(
       runtime,
       readGuestCapabilityHeader(headers),
     );
-    const currentNow = runtime.host.now?.() ?? Math.floor(Date.now() / 1000);
+    const currentNow = nowSeconds(runtime);
     if (!paymentsReady(runtime.host)) {
       const stored = await createCheckoutStore(runtime.carts).read(authorized.cartId);
       return projected(authorized.capabilityId, currentAttempt(stored?.record.attempts ?? []), currentNow);

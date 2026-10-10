@@ -12,6 +12,7 @@ export {
   resolveManagedStorefrontAvailability,
   resolveStorefrontAvailability,
 } from "../resolve.js";
+export { quoteCatalogBasket } from "../quote.js";
 export {
   OUT_OF_STOCK_LISTING_ROUTE,
   PLACEHOLDER_IMAGE_ROUTE,

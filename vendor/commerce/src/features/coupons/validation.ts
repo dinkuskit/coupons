@@ -198,7 +198,7 @@ function attempt(value: unknown, couponId: string): asserts value is CouponAttem
   // Free order only when state is consumed and overall is 0
   if (item.freeOrder !== undefined) {
     if (item.state !== "consumed" || quoteSnapshot.overallPayableTotal.minor !== "0") {
-      fail("freeOrder requires consumed state and zero overall total");
+      fail("freeOrder needs consumed state and zero overall total");
     }
   }
 

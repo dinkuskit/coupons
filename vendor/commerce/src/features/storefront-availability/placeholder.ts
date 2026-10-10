@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/record.js";
 import type { StorageCollection } from "emdash";
 
 import { normalizeMediaReference, type MediaReference } from "../catalog/kernel/index.js";
@@ -81,9 +82,7 @@ export async function setStorefrontPlaceholderImage(
 ): Promise<SetStorefrontPlaceholderImageResult> {
   const input = rawInput as { image?: unknown } | null;
   if (
-    typeof input !== "object" ||
-    input === null ||
-    Array.isArray(input) ||
+    !isRecord(input) ||
     Object.keys(input).join() !== "image"
   ) {
     throw new StorefrontAvailabilityError("INVALID_INPUT", "placeholder accepts only image");

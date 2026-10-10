@@ -17,6 +17,18 @@ export type {
   WakeReconciliationResult,
 } from "../wake.js";
 export { startCheckout, reconcileCheckout, CheckoutError } from "../orchestrate.js";
+export { handOffPaidOrder, listPaidOrders, paidOrderOf } from "../paid-orders.js";
+export {
+  CheckoutContactError,
+  captureCheckoutContact,
+  normalizeCheckoutContactInput,
+} from "../../checkout-contact/index.js";
+export type {
+  CheckoutContactRequirements,
+  CheckoutContactRequirementsLoader,
+  CheckoutContactSnapshot,
+  NormalizedCheckoutContact,
+} from "../../checkout-contact/index.js";
 export {
   createCurrentPaymentRequest,
   isCurrentPaymentRequest,
@@ -66,6 +78,7 @@ export type {
   InstalledCheckoutServices,
   InstalledCheckoutServiceResolver,
   InstalledGuestCheckoutRequest,
+  InstalledPaidOrders,
   InstalledWakeResult,
 } from "../installed.js";
 export {
@@ -102,6 +115,7 @@ export type {
   CheckoutExecution,
   CheckoutInventoryPort,
   CheckoutLine,
+  CheckoutReserveResult,
   CheckoutVariantSelectionSnapshot,
   CheckoutPaymentPort,
   CheckoutRecord,
@@ -136,11 +150,21 @@ export type {
   ScopedPaymentFetch,
   TrustedTestPaymentsCheckoutHost,
   TrustedTestPaymentsConfig,
+  TrustedTestPaymentsProviderId,
 } from "../test-payments.js";
 export {
   REGISTRY_CHECKOUT_CONFIG_SCHEMA,
+  REGISTRY_CHECKOUT_COUPONS_CREDENTIAL_KEY,
   REGISTRY_CHECKOUT_CREDENTIAL_KEY,
   REGISTRY_CHECKOUT_SETTINGS_KEY,
   resolveRegistryCheckoutServices,
 } from "../registry-services.js";
 export type { RegistryCheckoutConfig } from "../registry-services.js";
+export { createHostedCouponPort } from "../registry-coupons.js";
+export type { HostedCouponServiceConfig } from "../registry-coupons.js";
+export {
+  admitRegistryCheckoutConfig,
+  trustedPaymentsHostConfig,
+} from "../registry-provider-admission.js";
+export type { RegistryCheckoutProviderId } from "../registry-provider-admission.js";
+

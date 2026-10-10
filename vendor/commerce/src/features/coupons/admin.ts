@@ -6,6 +6,7 @@ import {
   type CouponAdminPort,
   type CouponCollection,
   type CouponDiscount,
+  type CouponNotApplicableReason,
   type CouponRecord,
   type CouponRule,
 } from "./types.js";
@@ -19,6 +20,8 @@ export class CouponAdminError extends Error {
       | "REVISION_CONFLICT"
       | "STORAGE_UNAVAILABLE",
     message: string,
+    /** Set when a coupon does not apply to a cart; the minimum comes with minimum-not-met. */
+    readonly notApplicable?: { reason: CouponNotApplicableReason; minimum?: Money },
   ) {
     super(message);
     this.name = "CouponAdminError";
@@ -207,7 +210,7 @@ export function createCouponAdmin(collection: CouponCollection): CouponAdminPort
       try {
         await collection.put(record.couponId, record);
       } catch (error) {
-        throw new CouponAdminError("STORAGE_UNAVAILABLE", "coupon create failed; normalized-code uniqueness is storage-enforced");
+        throw new CouponAdminError("STORAGE_UNAVAILABLE", "coupon create failed; normalized-code uniqueness enforced");
       }
       return deepFreeze(record);
     },
@@ -252,7 +255,7 @@ export function createCouponAdmin(collection: CouponCollection): CouponAdminPort
         if (!stored) throw new CouponAdminError("NOT_FOUND", "coupon was not found");
         const current = assertCoupon(stored.value, id);
         if (current.revision !== expectedRevision) {
-          throw new CouponAdminError("REVISION_CONFLICT", "coupon revision does not match expectedRevision");
+          throw new CouponAdminError("REVISION_CONFLICT", "coupon revision mismatches expectedRevision");
         }
         const nextRule = value.rule === undefined
           ? current.rule
@@ -272,7 +275,7 @@ export function createCouponAdmin(collection: CouponCollection): CouponAdminPort
         try {
           if ((await collection.compareAndSet(id, stored.revision, next)).applied) return deepFreeze(next);
         } catch (error) {
-          throw new CouponAdminError("STORAGE_UNAVAILABLE", "coupon edit failed; normalized-code uniqueness is storage-enforced");
+          throw new CouponAdminError("STORAGE_UNAVAILABLE", "coupon edit failed; normalized-code uniqueness enforced");
         }
       }
       throw new CouponAdminError("REVISION_CONFLICT", "coupon edit contention did not settle");

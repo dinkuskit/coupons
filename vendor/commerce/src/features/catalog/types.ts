@@ -1,6 +1,6 @@
 import type { StorageCollection } from "emdash";
 
-import type { StockManagement } from "../inventory-provider/index.js";
+import type { StockManagement } from "../inventory-provider/kernel/index.js";
 
 export const CATALOG_FEATURE_ID = "dinkus.catalog";
 export const CATALOG_COLLECTION = "catalogItems";
@@ -8,6 +8,7 @@ export const CATALOG_BACKORDER_POLICIES_COLLECTION = "catalogBackorderPolicies";
 export const CATALOG_MANUAL_AVAILABILITY_COLLECTION =
   "catalogManualAvailability";
 export const CATALOG_PRICES_COLLECTION = "catalogPrices";
+export const PRODUCT_FEED_ELIGIBILITY_COLLECTION = "productFeedEligibility";
 export const COMMERCE_CURRENCY_USD = "USD" as const;
 export const DEFAULT_CATALOG_MANUAL_AVAILABILITY = "in-stock" as const;
 export const CATALOG_VARIANT_SCHEMA =
@@ -59,6 +60,12 @@ export interface CatalogItemRecord extends NormalizedCreateCatalogItemInput {
   variantProductId?: string;
   variantSelections?: readonly CatalogVariantSelection[];
   variantFulfillment?: CatalogFulfillment;
+  /** Optional GS1 GTIN digits; absent means omitted from structured data. */
+  gtin?: string;
+  /** Optional manufacturer part number. */
+  mpn?: string;
+  /** Optional brand name. */
+  brand?: string;
 }
 
 export type CatalogFulfillment = "physical" | "digital";

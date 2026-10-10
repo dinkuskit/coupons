@@ -15,7 +15,7 @@ const INDEX_NAMES: Record<CatalogUniqueField, string> = {
 
 // These values are deliberately outside the caller-valid command and SKU grammars,
 // so an operator-supplied identity can never collide with an integrity sentinel.
-const PROBE_PREFIX = "__DINKUS_CATALOG_INTEGRITY_PROBE__";
+const PROBE_PREFIX = "__DK_CAT_PROBE__";
 
 function makeProbe(
   suffix: string,
@@ -25,10 +25,10 @@ function makeProbe(
 ): CatalogIntegrityProbeRecord {
   return {
     recordKind: "integrity-probe",
-    itemId: `__dinkus_catalog_${suffix}_${token}`,
+    itemId: `__dk_cat_${suffix}_${token}`,
     commandId,
     kind: "integrity-probe",
-    name: "DinkusKit catalog storage integrity probe",
+    name: "catalog integrity probe",
     sku: skuKey,
     skuKey,
     state: "internal",
@@ -41,17 +41,16 @@ function makeProbes(
 ): [CatalogIntegrityProbeRecord, CatalogIntegrityProbeRecord] {
   const token = globalThis.crypto.randomUUID();
   if (field === "commandId") {
-    const commandId = `${PROBE_PREFIX}:COMMAND:${token}`;
+    const commandId = `${PROBE_PREFIX}:CMD:${token}`;
     return [
-      makeProbe("command-left", token, commandId, `${PROBE_PREFIX}-COMMAND-LEFT-${token}`),
-      makeProbe("command-right", token, commandId, `${PROBE_PREFIX}-COMMAND-RIGHT-${token}`),
+      makeProbe("cmd-l", token, commandId, `${PROBE_PREFIX}-CMD-L-${token}`),
+      makeProbe("cmd-r", token, commandId, `${PROBE_PREFIX}-CMD-R-${token}`),
     ];
   }
-
   const skuKey = `${PROBE_PREFIX}-SKU-${token}`;
   return [
-    makeProbe("sku-left", token, `${PROBE_PREFIX}:SKU:LEFT:${token}`, skuKey),
-    makeProbe("sku-right", token, `${PROBE_PREFIX}:SKU:RIGHT:${token}`, skuKey),
+    makeProbe("sku-l", token, `${PROBE_PREFIX}:SKU:L:${token}`, skuKey),
+    makeProbe("sku-r", token, `${PROBE_PREFIX}:SKU:R:${token}`, skuKey),
   ];
 }
 
@@ -117,41 +116,29 @@ export function identifyConfirmedUniqueViolation(error: unknown, collection: str
 }
 
 async function proveUniqueIndex(storage: CatalogStorage, field: CatalogUniqueField, collection: string, pluginId: string): Promise<void> {
-  const [left, right] = makeProbes(field);
+  const probes = makeProbes(field);
   const attempted: CatalogIntegrityProbeRecord[] = [];
-
   try {
-    attempted.push(left);
-    try {
-      await storage.put(left.itemId, left);
-    } catch (error) {
-      if (isConfirmedUniqueViolation(error, field, collection, pluginId)) return;
-      throw new CatalogError(
-        "STORAGE_CONSTRAINTS_UNAVAILABLE",
-        `catalog ${field} uniqueness could not be proven`,
-        { cause: error },
-      );
+    for (const probe of probes) {
+      attempted.push(probe);
+      try {
+        await storage.put(probe.itemId, probe);
+      } catch (error) {
+        if (isConfirmedUniqueViolation(error, field, collection, pluginId)) return;
+        throw new CatalogError(
+          "STORAGE_CONSTRAINTS_UNAVAILABLE",
+          `catalog ${field} uniqueness unproven`,
+          { cause: error },
+        );
+      }
     }
-
-    attempted.push(right);
-    try {
-      await storage.put(right.itemId, right);
-    } catch (error) {
-      if (isConfirmedUniqueViolation(error, field, collection, pluginId)) return;
-      throw new CatalogError(
-        "STORAGE_CONSTRAINTS_UNAVAILABLE",
-        `catalog ${field} uniqueness could not be proven`,
-        { cause: error },
-      );
-    }
-
     throw new CatalogError(
       "STORAGE_CONSTRAINTS_UNAVAILABLE",
-      `catalog ${field} unique constraint is not active`,
+      `catalog ${field} unique index inactive`,
     );
   } finally {
-    let cleanupFailed = false;
     let cleanupCause: unknown;
+    let cleanupFailed = false;
     for (const probe of attempted.reverse()) {
       try {
         await storage.delete(probe.itemId);
@@ -163,7 +150,7 @@ async function proveUniqueIndex(storage: CatalogStorage, field: CatalogUniqueFie
     if (cleanupFailed) {
       throw new CatalogError(
         "STORAGE_CONSTRAINTS_UNAVAILABLE",
-        `catalog ${field} uniqueness probe cleanup failed`,
+        `catalog ${field} probe cleanup failed`,
         { cause: cleanupCause },
       );
     }

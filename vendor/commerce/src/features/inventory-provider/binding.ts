@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/record.js";
 import { InventoryProviderBindingError } from "./errors.js";
 import type {
   InventoryProviderBinding,
@@ -6,7 +7,7 @@ import type {
 
 function requireOpaqueIdentity(value: unknown, field: string): string {
   if (typeof value !== "string" || value.trim().length === 0) {
-    throw new InventoryProviderBindingError(`${field} must be a non-empty string`);
+    throw new InventoryProviderBindingError(`${field} must be non-empty`);
   }
   return value.trim();
 }
@@ -14,7 +15,7 @@ function requireOpaqueIdentity(value: unknown, field: string): string {
 export function normalizeInventoryProviderBinding(
   input: unknown,
 ): InventoryProviderBinding {
-  if (!input || typeof input !== "object" || Array.isArray(input)) {
+  if (!isRecord(input)) {
     throw new InventoryProviderBindingError("inventory provider binding must be an object");
   }
 

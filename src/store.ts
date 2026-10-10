@@ -171,9 +171,10 @@ export class StoreCoupons extends DurableObject<Env> {
         });
       } catch (error) {
         // Input was validated above, so what the evaluator still rejects is
-        // the coupon not applying to this cart (inactive, disabled, minimum).
+        // the coupon not applying to this cart. Commerce's evaluator says why
+        // (and the minimum, when one was not met) so checkout can tell the shopper.
         if (error instanceof CouponAdminError && error.code === "INVALID_INPUT") {
-          throw new ServiceError(422, "NOT_APPLICABLE", error.message);
+          throw new ServiceError(422, "NOT_APPLICABLE", error.message, error.notApplicable);
         }
         throw error;
       }

@@ -1,6 +1,6 @@
 import type { StorageCollection } from "emdash";
 
-import { CatalogError } from "./errors.js";
+import { CatalogError, catalogStorage } from "./errors.js";
 import type { CatalogItemReadStorage } from "./types.js";
 
 export const CATALOG_MEDIA_COLLECTION = "catalogMedia";
@@ -89,12 +89,7 @@ export async function loadCatalogItemMedia(
   storage: CatalogMediaStorage,
   catalogItemId: string,
 ): Promise<CatalogMediaRecord> {
-  let stored: CatalogMediaRecord | null;
-  try {
-    stored = await storage.get(catalogItemId);
-  } catch (error) {
-    storageFailure("catalog media lookup failed", error);
-  }
+  const stored: CatalogMediaRecord | null = await catalogStorage(() => storage.get(catalogItemId), "catalog media lookup failed");
   if (stored === null) return mediaRecord(catalogItemId);
   try {
     if (
@@ -136,12 +131,7 @@ export async function saveCatalogItemMedia(
         ? null
         : normalizeMediaReference(input.image, "image");
   const gallery = input.gallery === undefined ? undefined : normalizeGallery(input.gallery);
-  let item;
-  try {
-    item = await storage.catalog.get(catalogItemId);
-  } catch (error) {
-    storageFailure("catalog item lookup failed", error);
-  }
+  const item = await catalogStorage(() => storage.catalog.get(catalogItemId), "catalog item lookup failed");
   if (item === null || item.recordKind !== "catalog-item" || item.itemId !== catalogItemId) {
     throw new CatalogError("CATALOG_ITEM_NOT_FOUND", "catalog item was not found");
   }

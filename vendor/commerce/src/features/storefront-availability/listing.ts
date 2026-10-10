@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/record.js";
 import { StorefrontAvailabilityError } from "./errors.js";
 import {
   DEFAULT_HIDE_OUT_OF_STOCK,
@@ -59,7 +60,7 @@ export async function setOutOfStockListing(
   rawInput: unknown,
   options: SetOutOfStockListingOptions = {},
 ): Promise<SetOutOfStockListingResult> {
-  if (typeof rawInput !== "object" || rawInput === null || Array.isArray(rawInput)) {
+  if (!isRecord(rawInput)) {
     throw new StorefrontAvailabilityError(
       "INVALID_INPUT",
       "out-of-stock listing input must be an object",
@@ -72,7 +73,7 @@ export async function setOutOfStockListing(
   ) {
     throw new StorefrontAvailabilityError(
       "INVALID_INPUT",
-      "out-of-stock listing accepts only hideOutOfStock",
+      "out-of-stock listing accepts hideOutOfStock only",
     );
   }
   const listing = await loadOutOfStockListing(storage);

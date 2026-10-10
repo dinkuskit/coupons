@@ -116,7 +116,7 @@ test("unknown, inactive and malformed requests get distinct answers", async () =
   await coupon("LATER", 10, { startsAt: new Date(Date.now() + hour).toISOString(), endsAt: new Date(Date.now() + 2 * hour).toISOString() });
   const inactive = await call("POST", "/quotes", { quoteId: "q", code: "LATER", lines: cart });
   expect(inactive.status).toBe(422);
-  expect(inactive.json.error.code).toBe("NOT_APPLICABLE");
+  expect(inactive.json.error).toMatchObject({ code: "NOT_APPLICABLE", reason: "not-started" });
   const browserTotal = await call("POST", "/quotes", { quoteId: "q", code: "LATER", lines: cart, total: usd("1") });
   expect(browserTotal.status).toBe(400);
   const badSale = await call("POST", "/quotes", { quoteId: "q", code: "LATER", lines: [{ productId: "x", quantity: 1, regular: usd("100"), sale: usd("100") }] });
@@ -171,6 +171,21 @@ test("the global cap holds when checkouts race", async () => {
   expect((await call("GET", `/coupons/${couponId}/counts`, undefined, { scope: "coupons:admin" })).json.counts.remaining).toBe(1);
 });
 
+test("a coupon that does not apply says why, with the minimum when one was not met", async () => {
+  await coupon("BIG", 10, { minimumEligibleMerchandise: usd("10000") });
+  const short = await call("POST", "/quotes", { quoteId: "q", code: "BIG", lines: cart });
+  expect(short.status).toBe(422);
+  expect(short.json.error).toEqual({
+    code: "NOT_APPLICABLE", message: expect.any(String), reason: "minimum-not-met", minimum: usd("10000"),
+  });
+  await coupon("HATS", 10, { appliesTo: "selected-products", selectedProductIds: ["hat"] });
+  const none = await call("POST", "/quotes", { quoteId: "q", code: "HATS", lines: cart });
+  expect(none.status).toBe(422);
+  expect(none.json.error).toEqual({ code: "NOT_APPLICABLE", message: expect.any(String), reason: "no-qualifying-items" });
+  await coupon("OLD", 10, { startsAt: new Date(Date.now() - 2 * hour).toISOString(), endsAt: new Date(Date.now() - hour).toISOString() });
+  expect((await call("POST", "/quotes", { quoteId: "q", code: "OLD", lines: cart })).json.error.reason).toBe("expired");
+});
+
 test("admin keeps codes unique, edits by revision and disables", async () => {
   const created = await coupon("ONCE");
   expect((await call("POST", "/coupons", { code: " once ", globalCap: 1, rule: rule() }, { scope: "coupons:admin" })).json.error.code).toBe("CODE_IN_USE");
@@ -179,7 +194,9 @@ test("admin keeps codes unique, edits by revision and disables", async () => {
   expect((await call("PUT", `/coupons/${created.couponId}`, { expectedRevision: 1, globalCap: 6 }, { scope: "coupons:admin" })).status).toBe(409);
   const disabled = await call("POST", `/coupons/${created.couponId}/disable`, { expectedRevision: 2 }, { scope: "coupons:admin" });
   expect(disabled.json.coupon.disabled).toBe(true);
-  expect((await call("POST", "/quotes", { quoteId: "q", code: "ONCE", lines: cart })).json.error.code).toBe("NOT_APPLICABLE");
+  // A turned-off coupon reads to the shopper like an unknown code.
+  expect((await call("POST", "/quotes", { quoteId: "q", code: "ONCE", lines: cart })).json.error)
+    .toMatchObject({ code: "NOT_APPLICABLE", reason: "not-found" });
   const listed = await call("GET", "/coupons", undefined, { scope: "coupons:admin" });
   expect(listed.json.coupons.map((c: any) => c.code)).toEqual(["ONCE"]);
 });

@@ -1,5 +1,7 @@
+import { isRecord as isObject } from "../../shared/record.js";
 import type { PluginContext } from "emdash";
 import type { CronEvent } from "emdash/plugin";
+import { loadCheckoutContactRequirements } from "../store-settings/kernel/index.js";
 
 import { GuestCheckoutError } from "./errors.js";
 import {
@@ -17,6 +19,8 @@ import {
 } from "./runtime.js";
 import type { GuestCheckoutHostOptions, GuestCheckoutResult } from "./types.js";
 import type { CommercePaymentWakePort, WakeReconciliationResult } from "./wake.js";
+import type { CheckoutCouponPort } from "../coupons/index.js";
+import type { PaidOrderReceiver } from "../../handoffs/paid-order.js";
 
 export const COMMERCE_CHECKOUT_WAKES_TASK = "commerce-checkout-wakes";
 export const INSTALLED_COMMERCE_PLUGIN_ID = "dinkus-commerce";
@@ -29,11 +33,13 @@ export interface InstalledGuestCheckoutRequest {
 }
 
 type InstalledStorage = Record<string, unknown>;
-type InstalledContext = Pick<PluginContext, "plugin" | "storage" | "site">;
+type InstalledContext = Pick<PluginContext, "plugin" | "storage" | "site" | "settings">;
 
 export interface InstalledCheckoutServices {
   host: GuestCheckoutHostOptions;
   wakes?: CommercePaymentWakePort;
+  /** Bound by the entry's own resolver; the host options cannot carry it. */
+  coupons?: CheckoutCouponPort;
 }
 
 export type InstalledCheckoutServiceResolver = (
@@ -52,6 +58,9 @@ export type InstalledWakeResult =
   | { executed: false; reason: "not-configured" | "unavailable" }
   | { executed: true; results: WakeReconciliationResult[] };
 
+/** Binds Orders' receiving side from the installation's own storage. */
+export type InstalledPaidOrders = (ctx: PluginContext) => PaidOrderReceiver | undefined;
+
 type CronHandler = (event: CronEvent, ctx: PluginContext) => Promise<void>;
 
 const collectionMethods = {
@@ -67,9 +76,6 @@ const collectionMethods = {
   paymentAssociations: ["get", "compareAndSet"],
 } as const;
 
-function isObject(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
-}
 
 function installedStorage(ctx: InstalledContext): InstalledStorage {
   if (!isObject(ctx.plugin) ||
@@ -99,10 +105,14 @@ function siteOrigin(ctx: InstalledContext) {
   return resolved.origin;
 }
 
-function runtimeFor(ctx: PluginContext, services: InstalledCheckoutServices) {
+function runtimeFor(ctx: PluginContext, services: InstalledCheckoutServices, paidOrders?: InstalledPaidOrders) {
   const storage = installedStorage(ctx);
   const origin = siteOrigin(ctx);
-  const host = Object.freeze({ ...services.host });
+  const host = Object.freeze({
+    ...services.host,
+    loadCheckoutContactRequirements: () =>
+      loadCheckoutContactRequirements(ctx.settings),
+  });
   const resolved = resolveTrustedSiteOrigin({
     constructorSiteUrl: host.siteUrl,
     runtimeSiteUrl: origin,
@@ -113,6 +123,8 @@ function runtimeFor(ctx: PluginContext, services: InstalledCheckoutServices) {
   return bindGuestCheckoutRuntime(storage, SANDBOX_GUEST_CHECKOUT_STORAGE, {
     runtimeSiteUrl: origin,
     host,
+    coupons: services.coupons,
+    paidOrders: paidOrders?.(ctx),
   });
 }
 
@@ -122,6 +134,7 @@ function runtimeFor(ctx: PluginContext, services: InstalledCheckoutServices) {
  */
 export function createInstalledCheckoutHandlers(
   resolveServices: InstalledCheckoutServiceResolver = async () => ({ host: {} }),
+  paidOrders?: InstalledPaidOrders,
 ): InstalledCheckoutHandlers {
   async function guest(
     route: InstalledGuestCheckoutRequest,
@@ -137,7 +150,7 @@ export function createInstalledCheckoutHandlers(
       });
       // Resolve against the original owner context, separately from browser input.
       const services = await resolveServices(ctx);
-      return await action(runtimeFor(ctx, services));
+      return await action(runtimeFor(ctx, services, paidOrders));
     } catch (error) {
       return guestCheckoutFailure(error instanceof GuestCheckoutError ? error.code : "UNAVAILABLE");
     }
@@ -149,7 +162,7 @@ export function createInstalledCheckoutHandlers(
       siteOrigin(ctx);
       const services = await resolveServices(ctx);
       if (!services.wakes) return { executed: false, reason: "not-configured" };
-      const results = await reconcileGuestPaymentWakes(runtimeFor(ctx, services), services.wakes);
+      const results = await reconcileGuestPaymentWakes(runtimeFor(ctx, services, paidOrders), services.wakes);
       return { executed: true, results };
     } catch {
       return { executed: false, reason: "unavailable" };
@@ -169,6 +182,7 @@ export function createInstalledCheckoutHandlers(
 
 export function createInstalledCheckoutWakeHook(
   resolveServices?: InstalledCheckoutServiceResolver,
+  paidOrders?: InstalledPaidOrders,
 ): CronHandler {
-  return createInstalledCheckoutHandlers(resolveServices).cron;
+  return createInstalledCheckoutHandlers(resolveServices, paidOrders).cron;
 }
