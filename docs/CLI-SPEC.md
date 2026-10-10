@@ -1,10 +1,10 @@
 # `dinkus-coupons` CLI Specification
 
-Status: proposed v1 interface, implemented in this repository against the
-hosted coupon service. The GrillTrack decisions `coupons-cli-v1` and
-`coupon-admin-preview-confirm` record it; they lock when the project owner
-approves them. The service is not deployed, so examples here are contract
-transcripts with fictional IDs, not production proof.
+Status: locked v1 interface, implemented in this repository against the
+hosted coupon service. The project owner approved GrillTrack decisions
+`coupons-cli-v1` and `coupon-admin-preview-confirm` on 2026-10-10. The
+service is not deployed, so examples here are contract transcripts with
+fictional IDs, not production proof.
 
 ## Name and purpose
 

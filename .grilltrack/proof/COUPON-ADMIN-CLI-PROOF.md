@@ -4,8 +4,9 @@
 - **Focus:** `coupon-admin-cli`, from the project owner's "Coupon admin"
   choice on the thread's decision card on 2026-10-10.
 - **Baseline:** `git:ca529d3` (`origin/main` when the slice started).
-- **Decisions:** `coupon-admin-preview-confirm` and `coupons-cli-v1`, proposed
-  for the project owner to lock.
+- **Decisions:** `coupon-admin-preview-confirm` and `coupons-cli-v1`, approved
+  by the project owner in the thread on 2026-10-10 ("approved", 01:02 UTC)
+  and locked.
 - **Scope:** service routes, the `dinkus-coupons` CLI, its spec and agent
   skill, and docs. No deployment, secret, published package or production
   change is part of this slice.

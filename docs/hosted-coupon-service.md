@@ -7,9 +7,9 @@ and supersede `commerce-money-engine-ownership`. The service is a scaffold in
 `src/` with runtime tests and is not deployed. Commerce's checkout client
 landed in [commerce#82](https://github.com/dinkuskit/commerce/pull/82). The
 `dinkus-coupons` command-line tool ([CLI-SPEC.md](CLI-SPEC.md)) and the
-admin preview and confirm routes below are proposed in GrillTrack decisions
-`coupons-cli-v1` and `coupon-admin-preview-confirm`; the admin plugin is not
-built yet.
+admin preview and confirm routes below were approved by the project owner on
+2026-10-10 (GrillTrack decisions `coupons-cli-v1` and
+`coupon-admin-preview-confirm`); the admin plugin is not built yet.
 
 ## Why this exists
 

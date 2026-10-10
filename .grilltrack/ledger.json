@@ -3,11 +3,12 @@
   "created_at": "2026-09-30T18:31:02+00:00",
   "current_focus": {
     "cadence": "frontier-batch",
-    "confirmed": false,
+    "confirmed": true,
+    "confirmed_at": "2026-10-10T01:03:09+00:00",
     "domain": "coupon-admin-cli",
     "started_at": "2026-10-10T00:34:41+00:00",
-    "status": "grilling",
-    "summary": "Ronald chose 'Coupon admin' on the thread's decision card (2026-10-10): build a small command-line tool for store owners to create, list and turn off coupons first, then the Coupons admin Registry plugin."
+    "status": "confirmed",
+    "summary": "Ronald replied 'approved' in the thread on 2026-10-10 01:02 UTC after a plain explanation of both choices: a show-me-first step with a one-time five-minute approval code for every coupon change, and the first tool commands (list, show, create, turn off, turn on; edit later; no skipping the approval; no built-in store address). He did not choose merge, so merging waits for his word."
   },
   "decisions": [
     {
@@ -2144,9 +2145,52 @@
         "coupon-service-http-contract"
       ],
       "domain": "coupon-admin-cli",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-10T01:03:10+00:00",
+          "choice": "Add admin preview and confirm routes under coupons:admin: POST /coupons/previews returns before/after and a single-use confirmation that lasts five minutes and is bound to the store, the exact request and, for disable or enable, the coupon's current revision; POST /coupons/commands commits it under a caller-chosen command id; an exact retry returns the first result, results are kept 30 days, and GET /coupons/commands/{id} reads them. Merit refusals (INVALID_INPUT, NOT_FOUND, REVISION_CONFLICT, CODE_IN_USE) are stored and use up the confirmation; confirmation-gate refusals store nothing. First actions: create, disable, enable. The direct admin routes stay; the admin plugin chooses which to use when it is built.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T01:03:10+00:00",
+          "choice": "Add admin preview and confirm routes under coupons:admin: POST /coupons/previews returns before/after and a single-use confirmation that lasts five minutes and is bound to the store, the exact request and, for disable or enable, the coupon's current revision; POST /coupons/commands commits it under a caller-chosen command id; an exact retry returns the first result, results are kept 30 days, and GET /coupons/commands/{id} reads them. Merit refusals (INVALID_INPUT, NOT_FOUND, REVISION_CONFLICT, CODE_IN_USE) are stored and use up the confirmation; confirmation-gate refusals store nothing. First actions: create, disable, enable. The direct admin routes stay; the admin plugin chooses which to use when it is built.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T01:03:10+00:00",
+          "choice": "Add admin preview and confirm routes under coupons:admin: POST /coupons/previews returns before/after and a single-use confirmation that lasts five minutes and is bound to the store, the exact request and, for disable or enable, the coupon's current revision; POST /coupons/commands commits it under a caller-chosen command id; an exact retry returns the first result, results are kept 30 days, and GET /coupons/commands/{id} reads them. Merit refusals (INVALID_INPUT, NOT_FOUND, REVISION_CONFLICT, CODE_IN_USE) are stored and use up the confirmation; confirmation-gate refusals store nothing. First actions: create, disable, enable. The direct admin routes stay; the admin plugin chooses which to use when it is built.",
+          "from": "implemented",
+          "implementation_ref": "file:src/store.ts",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "coupon-admin-preview-confirm",
-      "implementation_ref": null,
+      "implementation_ref": "file:src/store.ts",
       "question": "How does the coupon service let a script or agent change coupons so a person approves the exact change first?",
       "rationale": "DinkusKit CLIs never offer --force: Inventory and Commerce make every change go through a server-side preview a person confirms, and recover lost answers by command id. Binding the preview in the service, not the CLI, means the confirmed change is exactly what runs, including the rule id and start time the service fills in.",
       "repair_required": false,
@@ -2155,10 +2199,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T00:34:41+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T01:03:10+00:00",
+      "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
     },
     {
       "baseline_ref": "git:ca529d3801a0427e6de53bf9b455ba09bd65e701",
@@ -2172,9 +2216,52 @@
         "coupon-admin-preview-confirm"
       ],
       "domain": "coupon-admin-cli",
-      "history": [],
+      "history": [
+        {
+          "at": "2026-10-10T01:03:10+00:00",
+          "choice": "dinkus-coupons ships in this repository on the shared DinkusKit CLI kernel, outside every plugin bundle, with: coupons list, show (with use counts), create, disable, enable, and commands show and resolve; coupons edit is listed as planned and sends nothing. Changes need --site on the command line and the service's preview, confirmed by typing the value or with --no-input --confirm; there is no --force. The pass comes only from DINKUS_COUPONS_TOKEN and is never sent to an endpoint from project config; there is no built-in production endpoint. Amounts are USD. Contract: docs/CLI-SPEC.md.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T01:03:10+00:00",
+          "choice": "dinkus-coupons ships in this repository on the shared DinkusKit CLI kernel, outside every plugin bundle, with: coupons list, show (with use counts), create, disable, enable, and commands show and resolve; coupons edit is listed as planned and sends nothing. Changes need --site on the command line and the service's preview, confirmed by typing the value or with --no-input --confirm; there is no --force. The pass comes only from DINKUS_COUPONS_TOKEN and is never sent to an endpoint from project config; there is no built-in production endpoint. Amounts are USD. Contract: docs/CLI-SPEC.md.",
+          "from": "locked",
+          "implementation_ref": null,
+          "note": "bounded implementation recorded",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "implemented",
+          "verification_ref": null
+        },
+        {
+          "at": "2026-10-10T01:03:10+00:00",
+          "choice": "dinkus-coupons ships in this repository on the shared DinkusKit CLI kernel, outside every plugin bundle, with: coupons list, show (with use counts), create, disable, enable, and commands show and resolve; coupons edit is listed as planned and sends nothing. Changes need --site on the command line and the service's preview, confirmed by typing the value or with --no-input --confirm; there is no --force. The pass comes only from DINKUS_COUPONS_TOKEN and is never sent to an endpoint from project config; there is no built-in production endpoint. Amounts are USD. Contract: docs/CLI-SPEC.md.",
+          "from": "implemented",
+          "implementation_ref": "file:docs/CLI-SPEC.md",
+          "note": "verification recorded in cumulative context",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "verified",
+          "verification_ref": null
+        }
+      ],
       "id": "coupons-cli-v1",
-      "implementation_ref": null,
+      "implementation_ref": "file:docs/CLI-SPEC.md",
       "question": "What does the first dinkus-coupons command-line tool do, and under which rules?",
       "rationale": "Ronald chose the command-line tool before the admin plugin on 2026-10-10. It follows the create-cli pattern and the token and confirmation rules already locked for the Commerce and Inventory CLIs, and costs no Registry bundle bytes.",
       "repair_required": false,
@@ -2183,10 +2270,10 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "proposed",
+      "status": "verified",
       "superseded_by": null,
-      "updated_at": "2026-10-10T00:34:41+00:00",
-      "verification_ref": null
+      "updated_at": "2026-10-10T01:03:10+00:00",
+      "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
     }
   ],
   "last_activation": {
@@ -2200,5 +2287,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-10-10T00:34:41+00:00"
+  "updated_at": "2026-10-10T01:03:10+00:00"
 }
