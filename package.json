@@ -18,9 +18,11 @@
   "scripts": {
     "test": "node --test tests/workflows/*.test.mjs tests/cli/*.test.mjs",
     "test:runtime": "vitest run",
+    "test:plugin": "vitest run --config vitest.plugin.config.ts",
     "typecheck": "node scripts/typecheck.mjs",
     "check:pin": "node scripts/check-commerce-pin.mjs",
-    "build": "wrangler deploy --dry-run --outdir dist"
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "build:plugin": "emdash-plugin validate plugins/coupons-admin && node scripts/check-plugin-bundle.mjs"
   },
   "dependencies": {
     "jose": "6.2.12"
@@ -28,6 +30,10 @@
   "devDependencies": {
     "@cloudflare/vitest-plugin": "1.3.3",
     "@cloudflare/workers-types": "5.20260929.1",
+    "@emdash-cms/blocks": "1.2.0",
+    "@emdash-cms/plugin-cli": "0.13.3",
+    "@emdash-cms/plugin-test": "0.2.8",
+    "emdash": "1.2.0",
     "typescript": "7.0.2",
     "vitest": "4.1.11",
     "wrangler": "4.144.0"

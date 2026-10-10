@@ -9,7 +9,9 @@ landed in [commerce#82](https://github.com/dinkuskit/commerce/pull/82). The
 `dinkus-coupons` command-line tool ([CLI-SPEC.md](CLI-SPEC.md)) and the
 admin preview and confirm routes below were approved by the project owner on
 2026-10-10 (GrillTrack decisions `coupons-cli-v1` and
-`coupon-admin-preview-confirm`); the admin plugin is not built yet.
+`coupon-admin-preview-confirm`). The Coupons admin plugin and the edit
+preview it needs are proposed as `coupon-admin-plugin-v1` and
+`coupon-admin-edit-preview`, waiting for the project owner's approval.
 
 ## Why this exists
 
@@ -60,7 +62,7 @@ This is the same pattern Payments and Inventory already use.
                                       coupon records + redemption attempts
                 ▲
                 │  HTTPS, scoped JWT
- Merchant ──▶ dinkus-coupons CLI, then Coupons admin (small Registry plugin)
+ Merchant ──▶ Coupons admin (small Registry plugin) or dinkus-coupons CLI
 ```
 
 - **Coupons service** (this repository): a Cloudflare Worker with one Durable
@@ -72,8 +74,10 @@ This is the same pattern Payments and Inventory already use.
   lines it has already priced and receives a discount quote. It never forwards
   browser-supplied prices or totals.
 - **Coupons admin** is a separate small Registry plugin with the admin screens
-  (list, create, edit, disable, counts). It calls the same service. The
-  `dinkus-coupons` operations CLI comes first (the project owner chose that
+  (list, create, edit, turn off and on, uses left), in
+  [plugins/coupons-admin](../plugins/coupons-admin/README.md). It calls the
+  same service with a `coupons:admin` pass saved in its encrypted settings.
+  The `dinkus-coupons` operations CLI came first (the project owner chose that
   order on 2026-10-10); it follows the create-cli pattern of the other
   DinkusKit CLIs and ships outside every plugin bundle.
 
@@ -210,10 +214,10 @@ how many uses are consumed, held and left.
 
 #### Preview and confirm (`coupons:admin`)
 
-Scripts and agents change coupons in two steps, so a person approves the exact
-change before it happens. The CLI uses only these routes for changes; the
-direct routes above stay for the admin plugin, which decides when it is built
-whether to use them or these.
+Scripts, agents and the admin plugin change coupons in two steps, so a person
+approves the exact change before it happens. The CLI and the Coupons admin
+plugin use only these routes for changes; the direct routes above stay for
+tests and for tools that run their own review.
 
 | Method and path | Body | Success |
 | --- | --- | --- |

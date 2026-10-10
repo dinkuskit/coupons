@@ -1,0 +1,25 @@
+{
+	"$schema": "../../node_modules/@emdash-cms/plugin-cli/schemas/emdash-plugin.schema.json",
+	"slug": "dinkus-coupons",
+	"version": "0.1.0",
+	"publisher": "did:plc:ekk4pjmkh3k3ql2kfoex3qt4",
+	"name": "Coupons",
+	"description": "Create, edit and turn off DinkusKit Commerce coupons and see how many uses each has left.",
+	"license": "MIT",
+	"author": { "name": "DinkusKit", "url": "https://github.com/dinkuskit" },
+	"security": { "url": "https://github.com/dinkuskit/coupons/security" },
+	"repo": "https://github.com/dinkuskit/coupons",
+	"capabilities": ["network:request"],
+	"allowedHosts": ["coupons.dinkuskit.com"],
+	"admin": {
+		"settingsSchema": {
+			"couponsAdminPass": {
+				"type": "secret",
+				"label": "Coupon pass",
+				"description": "The coupon pass from your DinkusKit account that can manage coupons. Passes stop working an hour after they are issued."
+			}
+		},
+		"pages": [{ "path": "/coupons", "label": "Coupons", "icon": "tag" }]
+	},
+	"release": { "requires": { "env:emdash": "1.2.0" } }
+}

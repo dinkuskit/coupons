@@ -8,8 +8,9 @@ Registry's 128 KiB per-file limit, and EmDash 1.2 has no way for one plugin to
 call another on the same site. So coupons come back as a Cloudflare Worker
 with one Durable Object per store, called by Commerce checkout over HTTPS, plus
 a small Coupons admin Registry plugin. The service is a tested scaffold and is
-not deployed yet. Store owners and their agents manage coupons with the
-`dinkus-coupons` command-line tool first; the admin plugin is not built yet.
+not deployed yet. Store owners manage coupons from the Coupons admin plugin's
+page in EmDash ([plugins/coupons-admin](plugins/coupons-admin/README.md)), and
+their agents use the `dinkus-coupons` command-line tool.
 
 Commerce keeps setting prices. The service evaluates a code only against lines
 Commerce has already priced, never against browser prices or totals, and uses
@@ -46,8 +47,10 @@ npm ci
 npm run check:pin             # vendor/commerce matches Commerce at commercePin
 npm run typecheck
 npm test                      # CLI and workflow tests in Node
-npm run test:runtime          # Worker and Durable Object in local workerd
+npm run test:runtime          # Worker, Durable Object and admin screens in local workerd
+npm run test:plugin           # the admin plugin inside EmDash's sandbox runner
 npm run build                 # wrangler dry run
+npm run build:plugin          # admin plugin manifest check and Registry packaging
 ```
 
 `src/worker.ts` routes `/v1/stores/{siteId}/...` and checks the store's
@@ -88,5 +91,5 @@ configuration or Astro routes) is a developer and test setup only. It may not
 offer features the Registry build lacks, except temporary gaps listed here with
 the work that closes them. The project owner set this rule on 2026-10-08.
 
-Any Coupons plugin ships as a Registry plugin, as the Agent Contract already
-requires (sandboxed, with no native escape).
+The Coupons admin plugin ships as a Registry plugin, as the Agent Contract
+requires (sandboxed, with no native escape). It has no native entry.
