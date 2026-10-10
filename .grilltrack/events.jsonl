@@ -129,3 +129,6 @@
 {"action": "decision_implemented", "at": "2026-10-08T23:44:17+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "1bf7dbd9-9d15-4132-a542-9a2a1bc243eb"}
 {"action": "decision_verified", "at": "2026-10-08T23:44:17+00:00", "data": {"decision_id": "single-coupon-evaluator"}, "event_id": "f06977ea-f121-4b2d-8ffe-e9a7e7997c83"}
 {"action": "decision_verified", "at": "2026-10-08T23:44:17+00:00", "data": {"decision_id": "coupon-service-http-contract"}, "event_id": "43d6791d-68e9-442e-a3e8-f9e6fa9592bf"}
+{"action": "focus_started", "at": "2026-10-10T00:34:41+00:00", "data": {"cadence": "frontier-batch", "domain": "coupon-admin-cli"}, "event_id": "4adcb30f-9d86-40b4-bb6a-11d99f37bb19"}
+{"action": "decision_proposed", "at": "2026-10-10T00:34:41+00:00", "data": {"decision_id": "coupon-admin-preview-confirm"}, "event_id": "d59169d6-30c6-47fe-a373-02ebc68b38d6"}
+{"action": "decision_proposed", "at": "2026-10-10T00:34:41+00:00", "data": {"decision_id": "coupons-cli-v1"}, "event_id": "f2241f61-b402-4b16-b4af-d71d5203811f"}

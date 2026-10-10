@@ -45,6 +45,12 @@ The service is a scaffold: a Cloudflare Worker (`src/worker.ts`) and one
 Workers runtime. It is not deployed and has no production configuration. Run
 `npm ci`, `npm run check:pin`, `npm run typecheck`, `npm test` and
 `npm run test:runtime` before pushing.
+
+`bin/dinkus-coupons.mjs` and `cli/` are the operations CLI
+([docs/CLI-SPEC.md](docs/CLI-SPEC.md)). `cli/kernel.mjs` is the shared
+DinkusKit CLI kernel; keep it byte-identical with Commerce's and change it
+there first. Nothing under `src/` imports `cli/`. Agents changing coupons use
+the CLI as [skills/coupons-cli](skills/coupons-cli/SKILL.md) describes.
 Keep the package private until its dogfood and release gates pass.
 
 Import Commerce's coupon core only through `src/core.ts`. Never edit files
