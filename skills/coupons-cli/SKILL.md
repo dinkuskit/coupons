@@ -5,7 +5,7 @@ description: List, create, and turn DinkusKit coupons on or off for a store with
 
 # Coupons CLI
 
-Use `bin/dinkus-coupons.mjs` (installed name `dinkus-coupons`, Node 22, no
+Use `bin/dinkus-coupons.mjs` (installed name `dinkus-coupons`, Node 24, no
 build) for every coupon read or change. The CLI owns the mechanics: the pass,
 the store check, preview and confirmation, the pending-change store, and exit
 codes. Do not rebuild those with `curl` or scripts. The contract is
