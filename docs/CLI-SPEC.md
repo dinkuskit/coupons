@@ -36,7 +36,7 @@ cli/commands.mjs         command behaviour and output shaping
 cli/pending-store.mjs    operator-local store for changes with an unknown outcome
 ```
 
-Dependency-free ESM on Node 22 (`.nvmrc`), no build step. The package
+Dependency-free ESM on Node 24 (`.nvmrc`), no build step. The package
 manifest maps `"bin": { "dinkus-coupons": "./bin/dinkus-coupons.mjs" }`.
 Nothing under `src/` imports `cli/`, and nothing under `cli/` imports the
 Worker or the vendored coupon core.
