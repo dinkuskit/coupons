@@ -40,6 +40,16 @@ The package remains private at `0.0.0`. The Commerce commit
 `8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a historical read-only
 reference, not a dependency or current SDK claim.
 
+## Kit direction
+
+The organization [vision](https://github.com/dinkuskit/.github/blob/main/VISION.md)
+and [scope and planning](https://github.com/dinkuskit/.github/blob/main/ROADMAP.md)
+set the wider direction. Basic coupons are optional for the current v1 store
+baseline; the agreed coupon feature contract is not a launch prerequisite.
+This repository retains its Commerce-priced-line and pinned-evaluator boundary.
+Independent adoption or other pricing-provider support would require a focused
+decision, not a relabeling of this scaffold as standalone.
+
 ## Development
 
 ```sh
