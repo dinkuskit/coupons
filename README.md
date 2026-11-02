@@ -31,7 +31,7 @@ See:
 - [Agreed v1 coupon semantics and acceptance matrix](docs/basic-v1-handoff.md)
 - [Earlier integration request, superseded](docs/v1-integration-request.md)
 
-Advanced stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
+Stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
 store credit, gift cards, cashback, loyalty, and referrals remain out of scope.
 Rounding/allocation, zero-total behavior, and code normalization are questions
 for the owning contract; this repository invents no policy.

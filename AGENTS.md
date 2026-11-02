@@ -1,7 +1,8 @@
 # Agent Contract
 
-This public repository owns the advanced DinkusKit Coupons extension for
-DinkusKit Commerce on EmDash. Keep it generic: site copy, customer data,
+This public repository owns DinkusKit Coupons, the one optional coupons
+module for DinkusKit Commerce on EmDash: the hosted coupon service and its
+admin plugin. Keep it generic: site copy, customer data,
 branding, credentials, and production configuration do not belong here.
 
 ## Direction and research
