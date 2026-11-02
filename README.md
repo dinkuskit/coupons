@@ -31,7 +31,7 @@ See:
 - [Agreed v1 coupon semantics and acceptance matrix](docs/basic-v1-handoff.md)
 - [Earlier integration request, superseded](docs/v1-integration-request.md)
 
-Advanced stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
+Stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
 store credit, gift cards, cashback, loyalty, and referrals remain out of scope.
 Rounding/allocation, zero-total behavior, and code normalization are questions
 for the owning contract; this repository invents no policy.
@@ -39,6 +39,16 @@ for the owning contract; this repository invents no policy.
 The package remains private at `0.0.0`. The Commerce commit
 `8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a historical read-only
 reference, not a dependency or current SDK claim.
+
+## Kit direction
+
+The organization [vision](https://github.com/dinkuskit/.github/blob/main/VISION.md)
+and [scope and planning](https://github.com/dinkuskit/.github/blob/main/ROADMAP.md)
+set the wider direction. Basic coupons are optional for the current v1 store
+baseline; the agreed coupon feature contract is not a launch prerequisite.
+This repository retains its Commerce-priced-line and pinned-evaluator boundary.
+Independent adoption or other pricing-provider support would require a focused
+decision, not a relabeling of this scaffold as standalone.
 
 ## Development
 
