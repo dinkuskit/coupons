@@ -51,8 +51,12 @@ applies:
 
 ```json
 { "from": "dinkus-coupons", "ref": "h_….c_…", "codes": ["SPRING25"], "ship": "free",
-  "lines": [{ "item": "boots", "price": "8000", "off": "2000" }] }
+  "lines": [{ "item": "boots", "price": "8000", "qty": 1, "off": "2000" }] }
 ```
+
+Each answer line names the item, unit price and quantity it priced. Commerce
+refuses the answer with `CONTENTION` when the cart no longer matches, and the
+store asks again.
 
 `ref` is present only with `hold`. Reasons: `not_found` (also a turned-off
 code, answered exactly the same way), `not_started`, `expired`, `minimum`,

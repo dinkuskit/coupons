@@ -93,7 +93,7 @@ const MESSAGES: Record<Reason, (coupon?: Coupon) => string> = {
 };
 
 export type CodeResult = { code: string; ok: true; off: string; freeShipping: boolean } | { code: string; ok: false; reason: Reason; message: string };
-export interface AddonAnswer { from: string; ref?: string; codes: string[]; ship?: "free"; lines: { item: string; price: string; off: string }[] }
+export interface AddonAnswer { from: string; ref?: string; codes: string[]; ship?: "free"; lines: { item: string; price: string; qty: number; off: string }[] }
 
 const blocked = (guess: Guess | null, now: number) => Boolean(guess?.blocked && Date.parse(guess.until) > now);
 
@@ -196,7 +196,7 @@ export async function answerCheckout(route: SandboxedRouteContext, ctx: PluginCo
     from: ADDON,
     codes: accepted.map(entry => entry.coupon.code),
     ...(priced.freeShipping ? { ship: "free" as const } : {}),
-    lines: input.lines.map((line, index) => ({ item: line.item, price: line.price, off: String(priced.lines[index]) })),
+    lines: input.lines.map((line, index) => ({ item: line.item, price: line.price, qty: line.quantity, off: String(priced.lines[index]) })),
   };
   if (input.hold) answer.ref = await hold(ctx, cart, accepted.map(entry => entry.id), email, now);
   return { codes, answer };

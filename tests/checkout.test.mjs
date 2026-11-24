@@ -39,7 +39,8 @@ test("percent off the order, dollars off the order spread by price, and dollars 
   assert.equal(ten.answer.from, "dinkus-coupons");
   assert.deepEqual(ten.answer.codes, ["TEN"]);
   assert.equal(ten.answer.ref, undefined, "only a hold names a ref");
-  assert.deepEqual(ten.answer.lines.map(line => [line.item, line.price]), [["boots", "8000"], ["mug", "1500"], ["socks-m", "1000"]]);
+  // Each line names the item, unit price and quantity it priced, so Commerce refuses it for a cart that changed since.
+  assert.deepEqual(ten.answer.lines.map(line => [line.item, line.price, line.qty]), [["boots", "8000", 1], ["mug", "1500", 2], ["socks-m", "1000", 3]]);
   const five = await ask(ctx, { codes: ["Five"] });
   assert.deepEqual(offs(five.answer), ["286", "107", "107"]);
   const each = await ask(ctx, { codes: ["EACH"] });
