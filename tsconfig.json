@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2022", "module": "ESNext", "moduleResolution": "Bundler",
-    "strict": true, "skipLibCheck": true, "noEmit": true,
-    "types": ["@cloudflare/workers-types"], "lib": ["ES2022"],
-    "paths": {
-      "emdash": ["./src/types/emdash.d.ts"],
-      "emdash/plugin": ["./src/types/emdash.d.ts"]
-    }
+    "target": "ES2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": []
   },
-  "include": ["src/**/*.ts", "tests/runtime/**/*.ts", "worker-configuration.d.ts"],
-  // The Coupons admin plugin builds against EmDash's real types, so it and the
-  // tests that load it are checked by tsconfig.plugin.json instead.
-  "exclude": ["tests/runtime/admin-plugin.test.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

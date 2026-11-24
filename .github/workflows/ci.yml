@@ -30,8 +30,8 @@ jobs:
           tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
           "$RUNNER_TEMP/actionlint" -color -shellcheck='' -pyflakes=''
 
-  service:
-    name: Coupon service
+  plugin:
+    name: Coupons plugin
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -43,11 +43,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
-      - run: npm run check:pin
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
-      - run: npm run test:runtime
-      - run: npm run test:plugin
-      - run: npm run build
-      - run: npm run build:plugin

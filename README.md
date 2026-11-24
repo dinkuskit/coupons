@@ -1,95 +1,32 @@
 # coupons
 
-`@dinkuskit/coupons` is the home of the hosted DinkusKit coupon
-service, which brings coupons to Registry stores running DinkusKit Commerce on
-EmDash. Commerce's Registry build no longer carries coupons
-([commerce#75](https://github.com/dinkuskit/commerce/pull/75)) because of the
-Registry's 128 KiB per-file limit, and EmDash 1.2 has no way for one plugin to
-call another on the same site. So coupons come back as a Cloudflare Worker
-with one Durable Object per store, called by Commerce checkout over HTTPS, plus
-a small Coupons admin Registry plugin. The service is a tested scaffold and is
-not deployed yet. Store owners manage coupons from the Coupons admin plugin's
-page in EmDash ([plugins/coupons-admin](plugins/coupons-admin/README.md)), and
-their agents use the `dinkus-coupons` command-line tool.
+`@dinkuskit/coupons` is DinkusKit Coupons, the `dinkus-coupons` EmDash
+Registry plugin: discount codes shoppers type at checkout, for stores running
+DinkusKit Commerce. Coupons and their uses stay in the store's own database;
+there is no hosted service and nothing to sign up for.
 
-Commerce keeps setting prices. The service evaluates a code only against lines
-Commerce has already priced, never against browser prices or totals, and uses
-Commerce's own coupon evaluator pinned by commit rather than a copy.
+EmDash plugins cannot call each other, so the store's own checkout code asks
+Coupons for an answer and hands it to Commerce's add-ons door. Commerce keeps
+setting prices and doing the totals, and checks every line again. Commerce's
+paid news, carried by the store's courier, counts each use.
 
-The feature set is the agreed v1: one code per order, percentage or fixed total
-discounts, all merchandise or selected products, sale-item inclusion defaulting
-to exclude, eligible-merchandise minimum spend before the coupon, percentage
-maximum discount, global redemption caps, payment reservation/consume/release
-and unknown-outcome reconciliation, frozen accepted discounts for existing
-payment sessions, and new-session evaluation against current rules.
+What a coupon can do is the set Shopify and WooCommerce share: percent off,
+dollars off the order or off each item, free shipping, every product or chosen
+products or categories, a minimum order amount or item count, an "exclude sale
+items" box, first and last days, a total uses limit and one use per shopper.
+Up to 5 money codes and 1 free shipping code combine Shopify's way.
 
-See:
-
-- [Hosted coupon service and HTTP contract](docs/hosted-coupon-service.md)
-- [`dinkus-coupons` CLI specification](docs/CLI-SPEC.md) and its agent skill,
-  [skills/coupons-cli](skills/coupons-cli/SKILL.md)
-- [Agreed v1 coupon semantics and acceptance matrix](docs/basic-v1-handoff.md)
-- [Earlier integration request, superseded](docs/v1-integration-request.md)
-
-Stacking, BOGO, bulk, marketing, analytics, Inventory dependencies,
-store credit, gift cards, cashback, loyalty, and referrals remain out of scope.
-Rounding/allocation, zero-total behavior, and code normalization are questions
-for the owning contract; this repository invents no policy.
-
-The package remains private at `0.0.0`. The Commerce commit
-`8a04c0b16b381b89531c88d1a655aad6c0c461c3` is a historical read-only
-reference, not a dependency or current SDK claim.
-
-## Kit direction
-
-The organization [vision](https://github.com/dinkuskit/.github/blob/main/VISION.md)
-and [scope and planning](https://github.com/dinkuskit/.github/blob/main/ROADMAP.md)
-set the wider direction. Basic coupons are optional for the current v1 store
-baseline; the agreed coupon feature contract is not a launch prerequisite.
-This repository retains its Commerce-priced-line and pinned-evaluator boundary.
-Independent adoption or other pricing-provider support would require a focused
-decision, not a relabeling of this scaffold as standalone.
+See [how the plugin works](docs/plugin.md).
 
 ## Development
 
 ```sh
 npm ci
-npm run check:pin             # vendor/commerce matches Commerce at commercePin
 npm run typecheck
-npm test                      # CLI and workflow tests in Node
-npm run test:runtime          # Worker, Durable Object and admin screens in local workerd
-npm run test:plugin           # the admin plugin inside EmDash's sandbox runner
-npm run build                 # wrangler dry run
-npm run build:plugin          # admin plugin manifest check and Registry packaging
+npm test        # builds the plugin, runs the Registry packaging check, then the tests
 ```
 
-`src/worker.ts` routes `/v1/stores/{siteId}/...` and checks the store's
-token; `src/store.ts` is the per-store Durable Object that runs Commerce's
-coupon core over its own SQLite storage. Nothing is deployed yet.
-
-## Command-line tool
-
-`bin/dinkus-coupons.mjs` lists coupons, shows how many uses are left, and
-creates or turns coupons off and on. Every change is previewed by the service
-and needs that preview's confirmation value, typed at the prompt or passed as
-`--confirm`. It needs a `coupons:admin` pass in `DINKUS_COUPONS_TOKEN` and an
-endpoint from `--endpoint`, `DINKUS_COUPONS_ENDPOINT` or user config.
-
-```sh
-export DINKUS_COUPONS_ENDPOINT=https://coupons.example
-bin/dinkus-coupons.mjs --site store-1 coupons list
-bin/dinkus-coupons.mjs --site store-1 coupons create --code FALL10 --percent 10 \
-  --ends 2026-11-30T23:59:59-05:00 --time-zone America/New_York --cap 500
-```
-
-The tool lives outside every plugin bundle. See
-[docs/CLI-SPEC.md](docs/CLI-SPEC.md) for flags, output, exit codes, and how
-to recover a change whose outcome is unknown.
-
-Commerce's coupon core, and the Commerce files it imports, are copied
-unchanged under `vendor/commerce` from the commit in `package.json`
-`dinkuskit.commercePin`. To move the pin, change `commercePin` and run
-`npm run check:pin -- --update`.
+The package is private at `0.0.0` until its release gates pass.
 
 ## Install type
 
@@ -106,5 +43,5 @@ configuration or Astro routes) is a developer and test setup only. It may not
 offer features the Registry build lacks, except temporary gaps listed here with
 the work that closes them. The project owner set this rule on 2026-10-08.
 
-The Coupons admin plugin ships as a Registry plugin, as the Agent Contract
+The Coupons plugin ships as a Registry plugin, as the Agent Contract
 requires (sandboxed, with no native escape). It has no native entry.

@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/@emdash-cms/plugin-cli/schemas/emdash-plugin.schema.json",
+  "slug": "dinkus-coupons",
+  "publisher": "did:plc:ekk4pjmkh3k3ql2kfoex3qt4",
+  "name": "DinkusKit Coupons",
+  "description": "Discount codes shoppers type at checkout, for DinkusKit Commerce stores on EmDash. Coupons and their uses stay in your store.",
+  "keywords": ["coupons", "discount codes", "discounts", "ecommerce"],
+  "license": "MIT",
+  "author": {
+    "name": "DinkusKit",
+    "url": "https://dinkuskit.com"
+  },
+  "security": {
+    "url": "https://github.com/dinkuskit/coupons/security"
+  },
+  "repo": "https://github.com/dinkuskit/coupons",
+  "capabilities": [],
+  "storage": {
+    "coupons": {
+      "indexes": ["createdAt"],
+      "uniqueIndexes": ["key"]
+    },
+    "holds": {
+      "indexes": ["cart", "ref", "until", ["coupon", "until"], ["coupon", "cart", "until"], ["coupon", "email", "until"], ["coupon", "email", "cart", "until"]],
+      "uniqueIndexes": []
+    },
+    "uses": {
+      "indexes": ["coupon", ["coupon", "test"], ["coupon", "email", "test"]],
+      "uniqueIndexes": []
+    },
+    "guesses": {
+      "indexes": ["until"],
+      "uniqueIndexes": []
+    }
+  },
+  "admin": {
+    "pages": [
+      { "path": "/coupons", "label": "Coupons", "icon": "tag" }
+    ]
+  }
+}
