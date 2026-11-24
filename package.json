@@ -1,41 +1,44 @@
 {
   "name": "@dinkuskit/coupons",
   "version": "0.0.0",
-  "description": "Hosted DinkusKit coupon service for Registry stores running DinkusKit Commerce on EmDash",
+  "description": "Discount codes for DinkusKit stores on EmDash",
   "type": "module",
   "private": true,
-  "bin": {
-    "dinkus-coupons": "./bin/dinkus-coupons.mjs"
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
+  "files": [
+    "dist",
+    "emdash-plugin.jsonc",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "emdash-plugin validate && emdash-plugin build && node scripts/check-registry-bundle.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs tests/workflows/*.test.mjs"
+  },
+  "devDependencies": {
+    "@emdash-cms/blocks": "1.5.0",
+    "@emdash-cms/plugin-cli": "0.13.6",
+    "@emdash-cms/plugin-types": "0.6.1",
+    "emdash": "1.5.0",
+    "typescript": "6.0.3"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dinkuskit/coupons.git"
   },
-  "dinkuskit": {
-    "commercePin": "4f193f97343b397d876c0fdeb6c64843fd0a0dbd"
+  "main": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./sandbox": "./dist/plugin.mjs"
   },
-  "scripts": {
-    "test": "node --test tests/workflows/*.test.mjs tests/cli/*.test.mjs",
-    "test:runtime": "vitest run",
-    "test:plugin": "vitest run --config vitest.plugin.config.ts",
-    "typecheck": "node scripts/typecheck.mjs",
-    "check:pin": "node scripts/check-commerce-pin.mjs",
-    "build": "wrangler deploy --dry-run --outdir dist",
-    "build:plugin": "emdash-plugin validate plugins/coupons-admin && node scripts/check-plugin-bundle.mjs"
-  },
-  "dependencies": {
-    "jose": "6.2.12"
-  },
-  "devDependencies": {
-    "@cloudflare/vitest-plugin": "1.3.3",
-    "@cloudflare/workers-types": "5.20260929.1",
-    "@emdash-cms/blocks": "1.2.0",
-    "@emdash-cms/plugin-cli": "0.13.3",
-    "@emdash-cms/plugin-test": "0.2.8",
-    "emdash": "1.2.0",
-    "typescript": "7.0.2",
-    "vitest": "4.1.11",
-    "wrangler": "4.144.0"
+  "peerDependencies": {
+    "emdash": "1.5.0"
   }
 }

@@ -2,13 +2,13 @@
   "closeout": null,
   "created_at": "2026-09-30T18:31:02+00:00",
   "current_focus": {
-    "cadence": "frontier-batch",
+    "cadence": "sequential",
     "confirmed": true,
-    "confirmed_at": "2026-10-10T02:25:01+00:00",
-    "domain": "coupon-admin-plugin",
-    "started_at": "2026-10-10T01:50:53+00:00",
+    "confirmed_at": "2026-11-24T15:45:26+00:00",
+    "domain": "coupons-plugin-rework",
+    "started_at": "2026-11-24T15:45:24+00:00",
     "status": "confirmed",
-    "summary": "Ronald chose 'Approve both' on the decision card 'Approve the two Coupons page choices so the PR can go to review?' in the thread on 2026-10-10 02:23 UTC, after a plain explanation of both choices: the Coupons admin page (list, open, create, edit, turn off, turn on, every change previewed then confirmed within five minutes, the store's coupon pass as its one encrypted setting, network only to the coupon service) and the coupon service changes it needs (previewed edits, admin answers that give counts instead of every use). Approving does not merge anything; merging still waits for his word."
+    "summary": "The owner approved building the coupons plugin rework on 24 Nov 2026: all 8 decisions, plus Shopify's three combines-with boxes. The plugin's contract is docs/plugin.md."
   },
   "decisions": [
     {
@@ -1052,6 +1052,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:26+00:00",
+          "choice": "One code/order; percentage or fixed total discount; applies to all merchandise or selected products; shipping and tax excluded; merchant sale-item inclusion defaults to exclude; minimum spend uses eligible merchandise before coupon, excluding shipping and tax; percentage discounts have a maximum discount amount.",
+          "from": "verified",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "The owner chose the Shopify and WooCommerce shared set of coupon settings on 24 Nov 2026.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/proof/AGREED-V1-PROOF.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6",
+          "to": "superseded",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "agreed-v1-terms",
@@ -1072,9 +1086,9 @@
       "review_ref": ".grilltrack/proof/AGREED-V1-PROOF.md",
       "review_result": "clean",
       "review_source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6",
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-01T01:39:54+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-v1-settings-20261124",
+      "updated_at": "2026-11-24T15:45:26+00:00",
       "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
     },
     {
@@ -1187,6 +1201,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:26+00:00",
+          "choice": "Global redemption cap is required; reserve capped usage while payment is pending, consume on confirmed success, release on confirmed failure or cancellation, reconcile unknown outcomes, and never release solely because time expired while outcome is uncertain; refunds never automatically restore redemption.",
+          "from": "verified",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "dependency agreed-v1-terms changed: The owner chose the Shopify and WooCommerce shared set of coupon settings on 24 Nov 2026.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:26+00:00",
+          "choice": "Global redemption cap is required; reserve capped usage while payment is pending, consume on confirmed success, release on confirmed failure or cancellation, reconcile unknown outcomes, and never release solely because time expired while outcome is uncertain; refunds never automatically restore redemption.",
+          "from": "needs_reverification",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "The owner chose on 24 Nov 2026 that a hold lapses after at most 60 minutes and a late payment still counts.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "agreed-v1-redemption",
@@ -1207,9 +1249,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-01T01:42:53+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-hold-20261124",
+      "updated_at": "2026-11-24T15:45:26+00:00",
       "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
     },
     {
@@ -1266,6 +1308,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:26+00:00",
+          "choice": "An already-created still-valid payment session freezes its accepted discount despite edits, disabling, or expiry; new sessions use current rules.",
+          "from": "verified",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "dependency agreed-v1-terms changed: The owner chose the Shopify and WooCommerce shared set of coupon settings on 24 Nov 2026.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/proof/AGREED-V1-PROOF.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "agreed-v1-session-freeze",
@@ -1283,12 +1339,12 @@
           "source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6"
         }
       ],
-      "review_ref": ".grilltrack/proof/AGREED-V1-PROOF.md",
-      "review_result": "clean",
-      "review_source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6",
-      "status": "verified",
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "needs_reverification",
       "superseded_by": null,
-      "updated_at": "2026-10-01T01:39:54+00:00",
+      "updated_at": "2026-11-24T15:45:26+00:00",
       "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
     },
     {
@@ -1401,6 +1457,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:26+00:00",
+          "choice": "EmDash admin supports list/create/edit/disable with explicit-timezone starts and ends and counts; shopper supports apply/remove; payment and persisted-order amounts and refund behavior require eventual verification. No per-customer restrictions or guest-email enforcement.",
+          "from": "verified",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "agreed-v1-surfaces",
@@ -1421,9 +1491,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-01T01:42:53+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:26+00:00",
       "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
     },
     {
@@ -1594,6 +1664,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "Document concise proposed semantic interfaces and an acceptance matrix for Commerce, Payments transport, and Template UI; label every proposal as awaiting owner acceptance, make no SDK claim, use the PR6 pinned historical Commerce source only as a historical reference, and request an immutable baseline plus typed acceptance from the existing checkout owner.",
+          "from": "verified",
+          "implementation_ref": ".grilltrack/proof/AGREED-V1-REVIEW.md",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-REVIEW.md"
         }
       ],
       "id": "agreed-v1-integration",
@@ -1623,9 +1707,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-01T01:50:25+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": ".grilltrack/proof/AGREED-V1-REVIEW.md"
     },
     {
@@ -1682,6 +1766,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:26+00:00",
+          "choice": "No stacking, BOGO, bulk, marketing, analytics, or Inventory dependency; no store credit, gift cards, cashback, loyalty, or referrals. Monetary rounding/allocation, zero-total behavior, and normalization remain explicit questions with no invented policy.",
+          "from": "verified",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "dependency agreed-v1-terms changed: The owner chose the Shopify and WooCommerce shared set of coupon settings on 24 Nov 2026.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": ".grilltrack/proof/AGREED-V1-PROOF.md",
+          "review_result": "clean",
+          "review_source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6",
+          "to": "needs_reverification",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:26+00:00",
+          "choice": "No stacking, BOGO, bulk, marketing, analytics, or Inventory dependency; no store credit, gift cards, cashback, loyalty, or referrals. Monetary rounding/allocation, zero-total behavior, and normalization remain explicit questions with no invented policy.",
+          "from": "needs_reverification",
+          "implementation_ref": "docs:docs/basic-v1-handoff.md,docs/v1-integration-request.md",
+          "note": "The owner chose the v1 settings and what is later on 24 Nov 2026.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
         }
       ],
       "id": "agreed-v1-deferrals",
@@ -1699,12 +1811,12 @@
           "source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6"
         }
       ],
-      "review_ref": ".grilltrack/proof/AGREED-V1-PROOF.md",
-      "review_result": "clean",
-      "review_source_identity": "sha256:91160c3e2acd6ea25453b7a794b377cdbdb2ed93123a36b37928d547fcccdac6",
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-01T01:39:55+00:00",
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "superseded",
+      "superseded_by": "coupons-v1-settings-20261124",
+      "updated_at": "2026-11-24T15:45:26+00:00",
       "verification_ref": ".grilltrack/proof/AGREED-V1-PROOF.md"
     },
     {
@@ -1776,6 +1888,20 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "This repository becomes the hosted DinkusKit coupon service: a Cloudflare Worker with one Durable Object per store holding coupon records and redemption attempts, called by Commerce checkout over HTTPS at one fixed host with a scoped JWT. Commerce keeps owning prices, cart, checkout, order, money, tax and refunds; the service evaluates only Commerce-priced lines and never trusts browser prices or totals. If the service is unavailable the coupon is unavailable and checkout continues without it; an accepted discount still fails closed per checkout-total-preservation.",
+          "from": "verified",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
         }
       ],
       "id": "hosted-coupon-service",
@@ -1788,9 +1914,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-08T22:50:36+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
@@ -1917,6 +2043,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "Run Commerce's coupon core unchanged from an exact copy, under vendor/commerce, of the Commerce files the build needs, taken from the commit in package.json dinkuskit.commercePin. CI (npm run check:pin) fails if any copied file differs from Commerce at that commit, and the copy is never edited. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. Pin bumps are their own PR with contract tests re-run.",
+          "from": "verified",
+          "implementation_ref": "file:scripts/check-commerce-pin.mjs",
+          "note": "dependency hosted-coupon-service changed: The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "Run Commerce's coupon core unchanged from an exact copy, under vendor/commerce, of the Commerce files the build needs, taken from the commit in package.json dinkuskit.commercePin. CI (npm run check:pin) fails if any copied file differs from Commerce at that commit, and the copy is never edited. Implement CouponCollection over Durable Object storage and CouponCatalogStorage in memory from the priced lines Commerce sends. Pin bumps are their own PR with contract tests re-run.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:scripts/check-commerce-pin.mjs",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
         }
       ],
       "id": "single-coupon-evaluator",
@@ -1929,9 +2083,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-08T23:44:17+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
@@ -2031,6 +2185,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "verified",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "dependency hosted-coupon-service changed: The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "HTTP contract v1 in docs/hosted-coupon-service.md: /v1/stores/{siteId} with quote, reserve, release-unstarted, provider-session, reconcile, free-order and get mapping one-to-one to Commerce's CheckoutCouponPort and CouponAttemptPort; admin endpoints mapping CouponAdminPort; JWT scopes coupons:checkout and coupons:admin bound to site_id; service clock; reserve accepts only a quote the service issued; idempotent on attemptId.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
         }
       ],
       "id": "coupon-service-http-contract",
@@ -2043,9 +2225,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-08T23:44:17+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
@@ -2116,6 +2298,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "A small separate Coupons admin Registry plugin (list, create, edit, disable, counts) calling the service with coupons:admin, sandboxed with network:request limited to the service host. An operations CLI follows the create-cli pattern later.",
+          "from": "verified",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "dependency hosted-coupon-service changed: The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "A small separate Coupons admin Registry plugin (list, create, edit, disable, counts) calling the service with coupons:admin, sandboxed with network:request limited to the service host. An operations CLI follows the create-cli pattern later.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/hosted-coupon-service.md",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
         }
       ],
       "id": "coupon-admin-registry-plugin",
@@ -2128,9 +2338,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-08T22:50:37+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/HOSTED-SERVICE-PROOF.md"
     },
     {
@@ -2187,6 +2397,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "Add admin preview and confirm routes under coupons:admin: POST /coupons/previews returns before/after and a single-use confirmation that lasts five minutes and is bound to the store, the exact request and, for disable or enable, the coupon's current revision; POST /coupons/commands commits it under a caller-chosen command id; an exact retry returns the first result, results are kept 30 days, and GET /coupons/commands/{id} reads them. Merit refusals (INVALID_INPUT, NOT_FOUND, REVISION_CONFLICT, CODE_IN_USE) are stored and use up the confirmation; confirmation-gate refusals store nothing. First actions: create, disable, enable. The direct admin routes stay; the admin plugin chooses which to use when it is built.",
+          "from": "verified",
+          "implementation_ref": "file:src/store.ts",
+          "note": "dependency hosted-coupon-service changed: The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "Add admin preview and confirm routes under coupons:admin: POST /coupons/previews returns before/after and a single-use confirmation that lasts five minutes and is bound to the store, the exact request and, for disable or enable, the coupon's current revision; POST /coupons/commands commits it under a caller-chosen command id; an exact retry returns the first result, results are kept 30 days, and GET /coupons/commands/{id} reads them. Merit refusals (INVALID_INPUT, NOT_FOUND, REVISION_CONFLICT, CODE_IN_USE) are stored and use up the confirmation; confirmation-gate refusals store nothing. First actions: create, disable, enable. The direct admin routes stay; the admin plugin chooses which to use when it is built.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:src/store.ts",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
         }
       ],
       "id": "coupon-admin-preview-confirm",
@@ -2199,9 +2437,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-10T01:03:10+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
     },
     {
@@ -2258,6 +2496,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "dinkus-coupons ships in this repository on the shared DinkusKit CLI kernel, outside every plugin bundle, with: coupons list, show (with use counts), create, disable, enable, and commands show and resolve; coupons edit is listed as planned and sends nothing. Changes need --site on the command line and the service's preview, confirmed by typing the value or with --no-input --confirm; there is no --force. The pass comes only from DINKUS_COUPONS_TOKEN and is never sent to an endpoint from project config; there is no built-in production endpoint. Amounts are USD. Contract: docs/CLI-SPEC.md.",
+          "from": "verified",
+          "implementation_ref": "file:docs/CLI-SPEC.md",
+          "note": "dependency hosted-coupon-service changed: The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "dinkus-coupons ships in this repository on the shared DinkusKit CLI kernel, outside every plugin bundle, with: coupons list, show (with use counts), create, disable, enable, and commands show and resolve; coupons edit is listed as planned and sends nothing. Changes need --site on the command line and the service's preview, confirmed by typing the value or with --no-input --confirm; there is no --force. The pass comes only from DINKUS_COUPONS_TOKEN and is never sent to an endpoint from project config; there is no built-in production endpoint. Amounts are USD. Contract: docs/CLI-SPEC.md.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:docs/CLI-SPEC.md",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
         }
       ],
       "id": "coupons-cli-v1",
@@ -2270,9 +2536,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-10T01:03:10+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-CLI-PROOF.md"
     },
     {
@@ -2330,6 +2596,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "plugins/coupons-admin ships one sandboxed Registry plugin (slug dinkus-coupons, name Coupons, no native entry) with one admin page, Coupons, and network:request limited to coupons.dinkuskit.com; no storage collections. Its admin route needs plugins:manage and a signed-in administrator on an admin page. Its only setting is the store's coupons:admin pass, saved as an encrypted secret; the store comes from the pass and the service address is fixed. Screens: coupon list (25 a page, newest first), coupon page (terms plus uses allowed, used, held by checkouts in progress, left), create, edit (code, discount, products, sale items, minimum spend, first and last day, time zone, total uses), turn off and turn on; no delete. Days are whole days in a picked time zone (US zones and UTC, plus a coupon's own zone); a blank first day starts now; an edit keeps the exact time of a day it leaves alone. Every change goes through the service's preview and needs a confirm click from the same administrator within five minutes; the plugin keeps the pending change and its command id in plugin KV for up to a day, so Check again after a lost answer never repeats a change. Before calling, the plugin explains a missing, unreadable, checkout-only, hour-old or refused pass and links to settings; renewing passes waits for the dinkuskit.com sign-in service.",
+          "from": "verified",
+          "implementation_ref": "file:plugins/coupons-admin/src/plugin.ts",
+          "note": "dependency hosted-coupon-service changed: The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "plugins/coupons-admin ships one sandboxed Registry plugin (slug dinkus-coupons, name Coupons, no native entry) with one admin page, Coupons, and network:request limited to coupons.dinkuskit.com; no storage collections. Its admin route needs plugins:manage and a signed-in administrator on an admin page. Its only setting is the store's coupons:admin pass, saved as an encrypted secret; the store comes from the pass and the service address is fixed. Screens: coupon list (25 a page, newest first), coupon page (terms plus uses allowed, used, held by checkouts in progress, left), create, edit (code, discount, products, sale items, minimum spend, first and last day, time zone, total uses), turn off and turn on; no delete. Days are whole days in a picked time zone (US zones and UTC, plus a coupon's own zone); a blank first day starts now; an edit keeps the exact time of a day it leaves alone. Every change goes through the service's preview and needs a confirm click from the same administrator within five minutes; the plugin keeps the pending change and its command id in plugin KV for up to a day, so Check again after a lost answer never repeats a change. Before calling, the plugin explains a missing, unreadable, checkout-only, hour-old or refused pass and links to settings; renewing passes waits for the dinkuskit.com sign-in service.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:plugins/coupons-admin/src/plugin.ts",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
         }
       ],
       "id": "coupon-admin-plugin-v1",
@@ -2342,9 +2636,9 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-10T02:25:02+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
     },
     {
@@ -2402,6 +2696,34 @@
           "review_source_identity": null,
           "to": "verified",
           "verification_ref": null
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "The admin preview routes add action edit: { couponId, changes } naming at least one of code, globalCap and rule, where rule holds only the fields it replaces whole (discount, appliesTo, selectedProductIds, includeSaleItems, minimumEligibleMerchandise, startsAt, endsAt, timeZone). The preview fixes the whole next rule (same rule id, version plus one), is bound to the coupon's revision like disable and enable, and an edit to the values the coupon already has is 409 NO_CHANGE; turning off and on stay their own actions. Every admin answer (list, get, create, edit, disable, previews, commands) gives coupons without their redemption attempts; counts report consumed, held and left.",
+          "from": "verified",
+          "implementation_ref": "file:src/store.ts",
+          "note": "dependency hosted-coupon-service changed: The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "needs_reverification",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
+        },
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "The admin preview routes add action edit: { couponId, changes } naming at least one of code, globalCap and rule, where rule holds only the fields it replaces whole (discount, appliesTo, selectedProductIds, includeSaleItems, minimumEligibleMerchandise, startsAt, endsAt, timeZone). The preview fixes the whole next rule (same rule id, version plus one), is bound to the coupon's revision like disable and enable, and an edit to the values the coupon already has is 409 NO_CHANGE; turning off and on stay their own actions. Every admin answer (list, get, create, edit, disable, previews, commands) gives coupons without their redemption attempts; counts report consumed, held and left.",
+          "from": "needs_reverification",
+          "implementation_ref": "file:src/store.ts",
+          "note": "The owner chose on 24 Nov 2026 to rebuild coupons as a Registry plugin that keeps coupons in the store; the hosted service, its contract, the CLI and the service-backed admin plugin are deleted.",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "superseded",
+          "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
         }
       ],
       "id": "coupon-admin-edit-preview",
@@ -2414,10 +2736,297 @@
       "review_ref": null,
       "review_result": null,
       "review_source_identity": null,
-      "status": "verified",
-      "superseded_by": null,
-      "updated_at": "2026-10-10T02:25:02+00:00",
+      "status": "superseded",
+      "superseded_by": "coupons-plugin-home-20261124",
+      "updated_at": "2026-11-24T15:45:25+00:00",
       "verification_ref": "file:.grilltrack/proof/COUPON-ADMIN-PLUGIN-PROOF.md"
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "This repository becomes the dinkus-coupons EmDash Registry plugin. Coupons and their uses are kept in the store's own plugin storage. The hosted coupon Worker and per-store Durable Object, the dinkus-coupons command-line tool and its skill, and the vendored Commerce copy with its pin check are deleted. The Block Kit screens from plugins/coupons-admin are the starting point for the plugin's admin page. Commerce's own unused coupon code is deleted in Commerce.",
+      "context_ref": "file:docs/plugin.md",
+      "created_at": "2026-11-24T15:45:24+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "coupons-plugin-rework",
+      "history": [
+        {
+          "at": "2026-11-24T15:45:24+00:00",
+          "choice": "This repository becomes the dinkus-coupons EmDash Registry plugin. Coupons and their uses are kept in the store's own plugin storage. The hosted coupon Worker and per-store Durable Object, the dinkus-coupons command-line tool and its skill, and the vendored Commerce copy with its pin check are deleted. The Block Kit screens from plugins/coupons-admin are the starting point for the plugin's admin page. Commerce's own unused coupon code is deleted in Commerce.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "coupons-plugin-home-20261124",
+      "implementation_ref": null,
+      "question": "Where do coupons live now that a hosted service is allowed only where an outside account requires one?",
+      "rationale": "The owner chose a coupons plugin with the scaffold deleted on 24 Nov 2026. The 22 Nov 2026 plugin-communication rule (dinkuskit/dinkuskit docs/plugin-communication.md) allows a hosted service only where an outside account requires one; coupons need none. Nothing was ever deployed or released.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T15:45:24+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Twelve: an unpaid checkout's hold on a use expires and a coupon's history stays bounded (G4-01, 02, 03, 05, 07, 08); a turned-off code answers exactly like an unknown code (G4-04); code guessing is rate limited (G4-06); codes are 1 to 64 characters, a coupon names at most 100 products or categories, saved ids are at most 200 characters (G4-09, G4-16); editing a coupon keeps its id and only bumps its version (G4-15); every amount is whole cents, at most 1,000,000,000 cents per line, and a discount never exceeds its line (G4-17). G4-10 to 14, G6-01 and G6-22 are dropped with the scaffold.",
+      "context_ref": "file:docs/plugin.md",
+      "created_at": "2026-11-24T15:45:24+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "coupons-plugin-rework",
+      "history": [
+        {
+          "at": "2026-11-24T15:45:24+00:00",
+          "choice": "Twelve: an unpaid checkout's hold on a use expires and a coupon's history stays bounded (G4-01, 02, 03, 05, 07, 08); a turned-off code answers exactly like an unknown code (G4-04); code guessing is rate limited (G4-06); codes are 1 to 64 characters, a coupon names at most 100 products or categories, saved ids are at most 200 characters (G4-09, G4-16); editing a coupon keeps its id and only bumps its version (G4-15); every amount is whole cents, at most 1,000,000,000 cents per line, and a discount never exceeds its line (G4-17). G4-10 to 14, G6-01 and G6-22 are dropped with the scaffold.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "coupons-audit-requirements-20261124",
+      "implementation_ref": null,
+      "question": "Which deepsec audit findings carry into the plugin as requirements?",
+      "rationale": "The owner approved the audit triage list of 12 requirements to carry forward on 24 Nov 2026.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T15:45:24+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The settings Shopify and WooCommerce share: percentage off; fixed amount off the order, spread over eligible lines by price; fixed amount off each eligible item; free shipping as a checkbox; applies to all products, chosen products or chosen categories; minimum order amount or minimum item count; an 'exclude sale items' checkbox, off by default so sale items are discounted; start and end dates in the store's time zone; total uses; one use per shopper by order email. Codes are not case-sensitive. No biggest-discount cap. Buy X get Y, automatic discounts and customer groups are later. Refusal reasons stay those of guest-checkout-coupon-reasons-035 (not found, not started, expired, minimum not met, no qualifying items, used up, try later).",
+      "context_ref": "file:docs/plugin.md",
+      "created_at": "2026-11-24T15:45:24+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "coupons-plugin-rework",
+      "history": [
+        {
+          "at": "2026-11-24T15:45:24+00:00",
+          "choice": "The settings Shopify and WooCommerce share: percentage off; fixed amount off the order, spread over eligible lines by price; fixed amount off each eligible item; free shipping as a checkbox; applies to all products, chosen products or chosen categories; minimum order amount or minimum item count; an 'exclude sale items' checkbox, off by default so sale items are discounted; start and end dates in the store's time zone; total uses; one use per shopper by order email. Codes are not case-sensitive. No biggest-discount cap. Buy X get Y, automatic discounts and customer groups are later. Refusal reasons stay those of guest-checkout-coupon-reasons-035 (not found, not started, expired, minimum not met, no qualifying items, used up, try later).",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "coupons-v1-settings-20261124",
+      "implementation_ref": null,
+      "question": "What can a coupon do in v1?",
+      "rationale": "The owner chose the settings Shopify and WooCommerce share on 24 Nov 2026, after a Shopify and WooCommerce comparison read that day.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T15:45:24+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "Shopify's rule: up to 5 product or order discount codes and 1 shipping discount code per order. Each coupon is a product discount (chosen products or each item), an order discount (whole order) or a shipping discount (free shipping), and has three checkboxes, all off by default: combines with product discounts, with order discounts, with shipping discounts. Product discounts apply first, then order discounts on what is left, then shipping.",
+      "context_ref": "file:docs/plugin.md",
+      "created_at": "2026-11-24T15:45:24+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "coupons-plugin-rework",
+      "history": [
+        {
+          "at": "2026-11-24T15:45:24+00:00",
+          "choice": "Shopify's rule: up to 5 product or order discount codes and 1 shipping discount code per order. Each coupon is a product discount (chosen products or each item), an order discount (whole order) or a shipping discount (free shipping), and has three checkboxes, all off by default: combines with product discounts, with order discounts, with shipping discounts. Product discounts apply first, then order discounts on what is left, then shipping.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "coupons-combining-20261124",
+      "implementation_ref": null,
+      "question": "How many codes can one order use, and which combine?",
+      "rationale": "The owner chose Shopify's 5 discount codes plus 1 shipping code, and Shopify's three combines-with boxes, on 24 Nov 2026 (Shopify Help Center, Discount combinations, https://help.shopify.com/en/manual/discounts/discount-combinations, read 24 Nov 2026).",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T15:45:24+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "A use is held when checkout starts and is released when the payment page closes, or after at most 60 minutes. Commerce's paid news, carried by the courier, turns the hold into a counted use once per order id. A payment that arrives after the hold lapsed still counts, even when that puts a limited coupon over its limit. The plugin's timer deletes ended holds; uses live one row per paid order, not on the coupon record.",
+      "context_ref": "file:docs/plugin.md",
+      "created_at": "2026-11-24T15:45:24+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "coupons-plugin-rework",
+      "history": [
+        {
+          "at": "2026-11-24T15:45:24+00:00",
+          "choice": "A use is held when checkout starts and is released when the payment page closes, or after at most 60 minutes. Commerce's paid news, carried by the courier, turns the hold into a counted use once per order id. A payment that arrives after the hold lapsed still counts, even when that puts a limited coupon over its limit. The plugin's timer deletes ended holds; uses live one row per paid order, not on the coupon record.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "coupons-hold-20261124",
+      "implementation_ref": null,
+      "question": "How long does an unpaid checkout hold a coupon use?",
+      "rationale": "The owner chose a hold until paid, at most 60 minutes, on 24 Nov 2026. WooCommerce holds a coupon for its 'Hold stock' time, 60 minutes by default; Payments' window is about 31 minutes.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T15:45:24+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "After 10 wrong codes on one cart, or 50 from one connection, that cart or connection waits one hour before another code is checked. The connection is kept only as a one-way hash for that hour.",
+      "context_ref": "file:docs/plugin.md",
+      "created_at": "2026-11-24T15:45:25+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "coupons-plugin-rework",
+      "history": [
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "After 10 wrong codes on one cart, or 50 from one connection, that cart or connection waits one hour before another code is checked. The connection is kept only as a one-way hash for that hour.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "coupons-guessing-20261124",
+      "implementation_ref": null,
+      "question": "How is code guessing slowed down?",
+      "rationale": "The owner chose 10 wrong codes per cart and 50 per connection on 24 Nov 2026, after reading that OWASP lists coupon guessing (OAT-002) and neither Shopify nor WooCommerce has a coupon-specific limit.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T15:45:25+00:00",
+      "verification_ref": null
+    },
+    {
+      "baseline_ref": null,
+      "candidate_refs": [],
+      "choice": "The plugin offers EmDash agent (MCP) tools to list, create, edit and turn coupons off and on, on the same private routes and permission as its admin page. There is no separate command-line tool. Shoppers' agents applying codes stay in phase 3 of the UCP scope.",
+      "context_ref": "file:docs/plugin.md",
+      "created_at": "2026-11-24T15:45:25+00:00",
+      "deferred_reason": null,
+      "delivery_ref": null,
+      "dependencies": [],
+      "domain": "coupons-plugin-rework",
+      "history": [
+        {
+          "at": "2026-11-24T15:45:25+00:00",
+          "choice": "The plugin offers EmDash agent (MCP) tools to list, create, edit and turn coupons off and on, on the same private routes and permission as its admin page. There is no separate command-line tool. Shoppers' agents applying codes stay in phase 3 of the UCP scope.",
+          "from": "proposed",
+          "implementation_ref": null,
+          "note": "user accepted the scoped decision",
+          "repair_required": false,
+          "review_classifications": [],
+          "review_ref": null,
+          "review_result": null,
+          "review_source_identity": null,
+          "to": "locked",
+          "verification_ref": null
+        }
+      ],
+      "id": "coupons-agent-tools-20261124",
+      "implementation_ref": null,
+      "question": "How do agents manage coupons?",
+      "rationale": "The owner approved agent tools in the plugin on 24 Nov 2026, after checking it matches Shopify: Shopify gives apps discount mutations under write_discounts and its Sidekick assistant drafts discounts for review.",
+      "repair_required": false,
+      "review_classifications": [],
+      "review_history": [],
+      "review_ref": null,
+      "review_result": null,
+      "review_source_identity": null,
+      "status": "locked",
+      "superseded_by": null,
+      "updated_at": "2026-11-24T15:45:25+00:00",
+      "verification_ref": null
     }
   ],
   "last_activation": {
@@ -2431,5 +3040,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-10-10T02:25:02+00:00"
+  "updated_at": "2026-11-24T15:45:26+00:00"
 }

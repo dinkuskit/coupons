@@ -1,0 +1,52 @@
+# 1. The owner makes SPRING25 (25% off, 100 uses)
+create: 200
+coupon id: c_48ed8b37dfb07e6a3fba
+
+# 2. A shopper checks out with SPRING25 on the store's own form
+Pay button enabled (checkout connected): true
+applied: ["SPRING25 −$4.50\nRemove"] discount: ["Discount\nSPRING25\n−$4.50"]
+after Apply (preview holds nothing): holds 0, uses 0, bookmark null
+Pay answered: https://checkout.stripe.com/c/pay/cs_test_574cdeb7c8b14e16b0a1d4bb8c5aad64
+
+# 3. What Pay saved
+Coupons after Pay: holds 1, uses 0, bookmark null
+hold: {"id":"edbdcc2554e7e6c266858d9e2038643d310d81d67769110990e950850059897d:c_48ed8b37dfb07e6a3fba","coupon":"c_48ed8b37dfb07e6a3fba","ref":"h_b9e5bf55222a46ddcb10.c_48ed8b37dfb07e6a3fba","cart":"(set)","until":"2026-11-24T17:33:07.481Z"}
+Commerce attempt: {"attemptId":"574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64","phase":"paying","total":{"currency":"USD","minor":"1850"},"addons":[{"from":"dinkus-coupons","ref":"h_b9e5bf55222a46ddcb10.c_48ed8b37dfb07e6a3fba","codes":["SPRING25"]}]}
+Commerce priced: {"subtotal":{"currency":"USD","minor":"1800"},"discount":{"currency":"USD","minor":"450"},"shipping":{"currency":"USD","minor":"500"},"total":{"currency":"USD","minor":"1850"}}
+hold ref equals Commerce's kept ref: true
+
+# 4. Callers that must be refused, before the order is paid
+anonymous courier/inbox deliver: 401 {"success":false,"error":{"code":"UNAUTHORIZED","message":"Authentication required"}}
+Administrator courier/inbox deliver: 400 {"success":false,"error":{"code":"ROUTE_ERROR","message":"Plugin dinkus-coupons:0.0.0 route courier/inbox failed: COURIER_ONLY: Only the store's courier may use this door."}}
+anonymous Commerce courier/outbox: 401 {"success":false,"error":{"code":"UNAUTHORIZED","message":"Authentication required"}}
+Administrator Commerce courier/outbox: 400 {"success":false,"error":{"code":"ROUTE_ERROR","message":"Plugin r_fjzjvld3ssb4j63o:0.8.0 route courier/outbox failed: COURIER_ONLY: Only the store's courier may use this door."}}
+Coupons after the refused calls: holds 1, uses 0, bookmark null
+
+# 5. Payments reports the session paid; Commerce's own 5-minute check takes it
+  check 0: attempt phase paying, order not yet
+attempt phase: paid
+order: {"id":"order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64","number":1001,"paidKey":"2026-11-24T16:33:35.078Z order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64","mode":"test","total":{"currency":"USD","minor":"1850"},"addons":[{"from":"dinkus-coupons","ref":"h_b9e5bf55222a46ddcb10.c_48ed8b37dfb07e6a3fba","codes":["SPRING25"]}]}
+Coupons before the courier comes (still held, no use): holds 1, uses 0, bookmark null
+
+Commerce shares order.paid news once it is a minute old (SETTLED_MS); waiting 65 s.
+
+# 6. The courier's run (the same courierTick() the Worker's once-a-minute timer calls)
+run 1: {"receivers":1,"handoffs":1,"delivered":1,"unfinished":false,"problems":[]}
+Coupons after run 1: holds 0, uses 1, bookmark "2026-11-24T16:33:35.078Z order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64"
+use: {"id":"order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64:c_48ed8b37dfb07e6a3fba","coupon":"c_48ed8b37dfb07e6a3fba","order":"order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64","email":"784a95c23aee524e412f3ed8eed6e6d5af8e8416d9bff538fe8fa16b1ab41328","test":true,"at":"2026-11-24T16:34:42.873Z"}
+
+# 7. Replays
+run 2: {"receivers":1,"handoffs":0,"delivered":0,"unfinished":false,"problems":[]}
+Coupons after run 2: holds 0, uses 1, bookmark "2026-11-24T16:33:35.078Z order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64"
+Commerce's order.paid news from the start (read by the store's code): {"items":[{"id":"order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64:paid","addons":[{"from":"dinkus-coupons","ref":"h_b9e5bf55222a46ddcb10.c_48ed8b37dfb07e6a3fba","codes":["SPRING25"]}],"test":true}],"next":"2026-11-24T16:33:35.078Z order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64"}
+the same batch again, from the old bookmark (a late or repeated run): {"courier":1,"saved":0,"moved":false}
+the same batch again, from the current bookmark: {"courier":1,"saved":0,"moved":false}
+Coupons after both replays: holds 0, uses 1, bookmark "2026-11-24T16:33:35.078Z order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64"
+one use for the order, bookmark unchanged: true
+
+# 8. Refused callers again, after the paid order
+anonymous courier/inbox deliver: 401 {"success":false,"error":{"code":"UNAUTHORIZED","message":"Authentication required"}}
+Administrator courier/inbox deliver: 400 {"success":false,"error":{"code":"ROUTE_ERROR","message":"Plugin dinkus-coupons:0.0.0 route courier/inbox failed: COURIER_ONLY: Only the store's courier may use this door."}}
+Coupons at the end: holds 0, uses 1, bookmark "2026-11-24T16:33:35.078Z order:574cdeb7-c8b1-4e16-b0a1-d4bb8c5aad64"
+
+Payments stand-in calls: ["GET /v1/checkout-binding","POST /v1/checkout/session","GET /v1/existing-binding","POST /v1/checkout/lookup -> open","GET /v1/checkout/wakes wakes 1","POST /v1/checkout/lookup -> paid","POST /v1/checkout/wakes/ack"]
