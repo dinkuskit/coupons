@@ -20,7 +20,7 @@ export const CART_TRIES = 10;
 export const CONNECTION_TRIES = 50;
 const WAIT_MS = 60 * 60_000;
 
-export type Reason = "not_found" | "not_started" | "expired" | "minimum" | "no_items" | "used_up" | "used_by_you" | "not_combinable" | "try_later";
+export type Reason = "not_found" | "not_started" | "expired" | "minimum" | "no_items" | "used_up" | "used_by_you" | "not_combinable" | "needs_email" | "try_later";
 
 /**
  * A refusal, in the shape of EmDash's own route error. EmDash's sandbox passes only the words of a thrown error back
@@ -88,6 +88,7 @@ const MESSAGES: Record<Reason, (coupon?: Coupon) => string> = {
   used_up: () => "This code has been used up.",
   used_by_you: () => "You've already used this code.",
   not_combinable: () => "This code can't be used with your other codes.",
+  needs_email: () => "Enter your email to use this code.",
   try_later: () => "Too many codes were tried. Try again in an hour.",
 };
 
@@ -110,8 +111,11 @@ async function wrong(ctx: PluginContext, id: string, allowed: number, now: numbe
   return false;
 }
 
-/** Whether another checkout's hold, or a paid order, has taken the coupon's last use, or this shopper's one use. */
-async function taken(ctx: PluginContext, id: string, coupon: Coupon, cart: string, email: string | undefined, at: string): Promise<Reason | null> {
+/**
+ * Whether another checkout's hold, or a paid order, has taken the coupon's last use, or this shopper's one use. A code
+ * that is one use per shopper is held only with the order's email; without one, Apply may still show it.
+ */
+async function taken(ctx: PluginContext, id: string, coupon: Coupon, cart: string, email: string | undefined, at: string, hold: boolean): Promise<Reason | null> {
   if (coupon.limit !== undefined) {
     const [used, held, mine] = await Promise.all([
       db(ctx).uses.count({ coupon: id, test: false }),
@@ -120,6 +124,7 @@ async function taken(ctx: PluginContext, id: string, coupon: Coupon, cart: strin
     ]);
     if (used + held - mine >= coupon.limit) return "used_up";
   }
+  if (coupon.oncePerShopper && hold && !email) return "needs_email";
   if (coupon.oncePerShopper && email) {
     const [used, held, mine] = await Promise.all([
       db(ctx).uses.count({ coupon: id, email, test: false }),
@@ -167,7 +172,7 @@ export async function answerCheckout(route: SandboxedRouteContext, ctx: PluginCo
     if (coupon.ends && Date.parse(coupon.ends) <= now) { refuse("expired"); continue; }
     const short = unmet(coupon, input.lines);
     if (short) { refuse(short, coupon); continue; }
-    const gone = await taken(ctx, id, coupon, cart, email, at);
+    const gone = await taken(ctx, id, coupon, cart, email, at, input.hold);
     if (gone) { refuse(gone); continue; }
     const kind = kindOf(coupon);
     const sameKind = accepted.filter(other => (kindOf(other.coupon) === "shipping") === (kind === "shipping")).length;

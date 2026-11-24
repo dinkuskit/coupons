@@ -173,6 +173,12 @@ test("one use per shopper, by order email", async () => {
   // The email is kept only as a one-way hash.
   assert.doesNotMatch(JSON.stringify([...ctx.storage.holds.rows.values()]), /example\.test/i);
   assert.equal((await ask(ctx, { codes: ["WELCOME"], email: "lee@example.test", cart: "cart-3" })).codes[0].ok, true);
+  // Without the order's email the code can be shown on Apply, but checkout cannot hold it, so no discount goes to Commerce.
+  assert.equal((await ask(ctx, { codes: ["WELCOME"], cart: "cart-4" })).codes[0].ok, true);
+  const unnamed = await ask(ctx, { codes: ["WELCOME"], cart: "cart-4", hold: true });
+  assert.deepEqual(unnamed.codes[0], { code: "WELCOME", ok: false, reason: "needs_email", message: "Enter your email to use this code." });
+  assert.equal(unnamed.answer, null);
+  assert.equal([...ctx.storage.holds.rows.values()].some(row => row.data.cart === "cart-4"), false);
   void coupon;
 });
 

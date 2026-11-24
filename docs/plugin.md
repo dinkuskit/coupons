@@ -56,7 +56,9 @@ applies:
 
 `ref` is present only with `hold`. Reasons: `not_found` (also a turned-off
 code, answered exactly the same way), `not_started`, `expired`, `minimum`,
-`no_items`, `used_up`, `used_by_you`, `not_combinable` and `try_later`.
+`no_items`, `used_up`, `used_by_you`, `not_combinable`, `needs_email` and
+`try_later`. `needs_email` comes only with `hold`: a one-use-per-shopper code is
+held only with the order's email. Without `hold`, it is shown as applying.
 
 ## `POST checkout/release`
 
