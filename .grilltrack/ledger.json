@@ -3,11 +3,12 @@
   "created_at": "2026-09-30T18:31:02+00:00",
   "current_focus": {
     "cadence": "sequential",
-    "confirmed": false,
+    "confirmed": true,
+    "confirmed_at": "2026-11-24T14:33:29+00:00",
     "domain": "coupons-plugin-rework",
     "started_at": "2026-11-24T14:32:21+00:00",
-    "status": "grilling",
-    "summary": "Rebuild coupons as an EmDash Registry plugin under the 22 Nov 2026 plugin-communication rule, carrying the 12 deepsec audit requirements the owner agreed on 24 Nov 2026. Design doc: https://claude.ai/artifact/QbemnxJzNejgLLNqU6hc2B"
+    "status": "confirmed",
+    "summary": "Ronald replied 'agreed, build it' on 24 Nov 2026 14:33 UTC to the summary of the coupons plugin rework: all 8 decisions settled on cards, plus Shopify's three combines-with boxes; design doc https://claude.ai/artifact/QbemnxJzNejgLLNqU6hc2B."
   },
   "decisions": [
     {
@@ -3051,5 +3052,5 @@
   "status": "active",
   "title": "Coupons v1 boundary",
   "track_id": "gt-20260930183102-25d567",
-  "updated_at": "2026-11-24T14:32:31+00:00"
+  "updated_at": "2026-11-24T14:33:29+00:00"
 }
