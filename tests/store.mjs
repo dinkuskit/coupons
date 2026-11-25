@@ -38,6 +38,10 @@ function collection() {
       rows.set(id, { data: structuredClone(data), revision: String(++clock) });
       return { applied: true };
     },
+    async compareAndDelete(id, expected) {
+      if (rows.get(id)?.revision !== expected) return { applied: false };
+      return { applied: rows.delete(id) };
+    },
   };
   return api;
 }

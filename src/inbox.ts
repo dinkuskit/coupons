@@ -59,8 +59,13 @@ async function count(ctx: PluginContext, use: NonNullable<ReturnType<typeof paid
     if ((await db(ctx).uses.compareAndSet(`${use.order}:${id}`, null, row)).applied) saved++;
   }
   if (use.ref) {
-    const holds = await db(ctx).holds.query({ where: { ref: use.ref }, limit: 20 });
-    if (holds.items.length) await db(ctx).holds.deleteMany(holds.items.map(item => item.id));
+    const holds = db(ctx).holds;
+    const page = await holds.query({ where: { ref: use.ref }, limit: 20 });
+    for (const { id } of page.items) {
+      // A newer checkout can reuse this cart/coupon key after the old hold expires.
+      const current = await holds.getVersioned(id);
+      if (current?.value.ref === use.ref) await holds.compareAndDelete(id, current.revision);
+    }
   }
   return saved;
 }
