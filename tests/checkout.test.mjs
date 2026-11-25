@@ -165,6 +165,27 @@ test("a hold keeps a use for one cart; the same codes again keep its ref, and re
   assert.equal(ctx.storage.holds.rows.size, 0);
 });
 
+test("a refused Pay leaves one-use codes available and does not disturb an existing hold", async () => {
+  const ctx = store();
+  await save(ctx, { code: "LAST", limit: "1" });
+  const mixed = { codes: ["LAST", "MISSPELLED"] };
+  const preview = await ask(ctx, mixed);
+  assert.deepEqual(preview.answer.codes, ["LAST"]);
+  assert.equal(preview.answer.ref, undefined);
+  const refused = await ask(ctx, { ...mixed, hold: true });
+  assert.deepEqual(refused, { codes: preview.codes, answer: null });
+  assert.equal(ctx.storage.holds.rows.size, 0);
+
+  const payingCart = { cart: "cart-2", hold: true };
+  const held = await ask(ctx, { ...payingCart, codes: ["LAST", "last"] });
+  assert.ok(held.answer.ref);
+  assert.equal(ctx.storage.holds.rows.size, 1);
+  assert.equal((await ask(ctx, { ...payingCart, ...mixed })).answer, null);
+  assert.equal((await ask(ctx, { ...payingCart, codes: ["MISSPELLED"] })).answer, null);
+  assert.equal((await ask(ctx, { ...payingCart, codes: ["LAST"] })).answer.ref, held.answer.ref);
+  assert.equal((await ask(ctx, { codes: ["LAST"] })).codes[0].reason, "used_up");
+});
+
 test("one use per shopper, by order email", async () => {
   const ctx = store();
   const coupon = await save(ctx, { code: "WELCOME", oncePerShopper: true });

@@ -138,8 +138,8 @@ async function taken(ctx: PluginContext, id: string, coupon: Coupon, cart: strin
 
 /**
  * `POST checkout/answer`: checks the typed codes against the cart's lines and prices them. With `hold`, which the
- * store sends as checkout starts, it also holds a use of each accepted code for this cart and names the hold in
- * `ref`. The answer goes to Commerce exactly as given; null when no code applies.
+ * store sends as checkout starts, it holds uses only when every distinct code applies and names the hold in
+ * `ref`. A refused checkout still gets the per-code results, but no answer for Commerce.
  */
 export async function answerCheckout(route: SandboxedRouteContext, ctx: PluginContext): Promise<{ codes: CodeResult[]; answer: AddonAnswer | null }> {
   const input = ask(storeOnly(route));
@@ -188,6 +188,8 @@ export async function answerCheckout(route: SandboxedRouteContext, ctx: PluginCo
     results[entry.at] = { code: entry.coupon.code, ok: true, off: String(priced.byCoupon[index]), freeShipping: entry.coupon.freeShipping };
   });
   const codes = results as CodeResult[];
+  // A refusal stops checkout. Keep the preview, but don't acquire or replace a hold for a payment that won't start.
+  if (input.hold && codes.some(result => !result.ok)) return { codes, answer: null };
   if (!accepted.length) {
     if (input.hold) await releaseCart(ctx, cart);
     return { codes, answer: null };
