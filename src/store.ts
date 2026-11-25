@@ -18,6 +18,7 @@ interface Collection<T> {
   count(where?: Record<string, unknown>): Promise<number>;
   getVersioned(id: string): Promise<{ value: T; revision: string } | null>;
   compareAndSet(id: string, expectedRevision: string | null, data: T): Promise<{ applied: boolean }>;
+  compareAndDelete(id: string, expectedRevision: string): Promise<{ applied: boolean }>;
   query(options?: { where?: Record<string, unknown>; orderBy?: Record<string, "asc" | "desc">; limit?: number; cursor?: string }):
     Promise<{ items: { id: string; data: T }[]; cursor?: string; hasMore: boolean }>;
 }

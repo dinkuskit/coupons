@@ -53,3 +53,45 @@ test("a payment after the hold lapsed still counts, even over the limit, and a r
   ] });
   assert.equal(await used(ctx, coupon.id), 2);
 });
+
+for (const when of ["after the ref query", "after the revision read"]) {
+  test(`late paid cleanup preserves a replacement hold written ${when}`, async () => {
+    const ctx = store();
+    const coupon = await save(ctx, { code: "TRAIL10", limit: "2" });
+    const ask = cart => routes["checkout/answer"].handler(storeCode({ cart, codes: ["TRAIL10"], lines: lines(), hold: true }), ctx);
+    const { answer: previous } = await ask("cart-a");
+    const holds = ctx.storage.holds;
+    const [[key, row]] = holds.rows;
+    row.data.until = new Date(Date.now() - 1).toISOString();
+    let next;
+    const replace = async () => {
+      next = (await ask("cart-a")).answer;
+      assert.ok(next?.ref && next.ref !== previous.ref);
+      assert.equal(holds.rows.get(key).data.ref, next.ref);
+    };
+    if (when === "after the ref query") {
+      const query = holds.query;
+      holds.query = async options => {
+        const result = await query(options);
+        if (options?.where?.ref === previous.ref) await replace();
+        return result;
+      };
+    } else {
+      const getVersioned = holds.getVersioned;
+      holds.getVersioned = async id => {
+        const snapshot = await getVersioned(id);
+        if (snapshot?.value.ref === previous.ref) await replace();
+        return snapshot;
+      };
+    }
+    const delivery = { op: "deliver", from: "dinkus-commerce", topic: "order.paid", after: null, next: "k1",
+      items: [paid("order-a", [{ from: "dinkus-coupons", ref: previous.ref, codes: previous.codes }])] };
+    assert.deepEqual(await inbox(ctx, delivery), { courier: 1, saved: 1, moved: true });
+    assert.ok(next?.ref);
+    assert.equal(holds.rows.get(key)?.data.ref, next.ref);
+    assert.equal((await ask("cart-b")).codes[0].reason, "used_up");
+    assert.deepEqual(await inbox(ctx, delivery), { courier: 1, saved: 0, moved: false });
+    assert.equal(holds.rows.get(key)?.data.ref, next.ref);
+    assert.equal(await used(ctx, coupon.id), 1);
+  });
+}
