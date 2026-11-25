@@ -107,10 +107,15 @@ export async function sweep(ctx: PluginContext, rounds = 10): Promise<number> {
   const now = new Date().toISOString();
   let gone = 0;
   for (const name of ["holds", "guesses"] as const) {
+    const collection = db(ctx)[name];
     for (let round = 0; round < rounds; round++) {
-      const page = await db(ctx)[name].query({ where: { until: { lte: now } }, limit: 100 });
+      const page = await collection.query({ where: { until: { lte: now } }, limit: 100 });
       if (!page.items.length) break;
-      gone += await db(ctx)[name].deleteMany(page.items.map(item => item.id));
+      for (const { id } of page.items) {
+        // A checkout can reuse an expired row before the sweep finishes.
+        const current = await collection.getVersioned(id);
+        if (current && current.value.until <= now && (await collection.compareAndDelete(id, current.revision)).applied) gone++;
+      }
       if (!page.hasMore) break;
     }
   }
