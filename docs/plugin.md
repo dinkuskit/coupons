@@ -15,8 +15,9 @@ EmDash plugins cannot call each other, so the store carries the answer:
 2. The store's own server code reads the cart's lines from Commerce, in
    Commerce's line order (cart lines sorted by catalog item id), and asks
    `POST checkout/answer` with nobody signed in.
-3. When the shopper goes to pay, it asks again with `hold: true` and hands the
-   `answer` to Commerce's private add-ons door, `checkout/addons/start`.
+3. When the shopper goes to pay, it asks again with `hold: true`. If every
+   distinct code applies, the store hands the `answer` to Commerce's private
+   add-ons door, `checkout/addons/start`.
    Commerce checks every line's item and unit price again, does the totals and
    keeps `{ from, ref, codes }` on the order.
 4. Commerce's `order.paid` news, carried by the store's courier, names the
@@ -47,7 +48,9 @@ The answer is `{ codes, answer }`. `codes` has one entry per different code,
 in the order typed: `{ code, ok: true, off, freeShipping }` or
 `{ code, ok: false, reason, message }`, where `message` is what to show the
 shopper. `answer` is what goes to Commerce unchanged, or `null` when no code
-applies:
+applies. With `hold: true`, any refused code also makes `answer` null and leaves
+existing holds unchanged. The per-code results are still returned so the store
+can show what would apply and what needs correcting:
 
 ```json
 { "from": "dinkus-coupons", "ref": "h_….c_…", "codes": ["SPRING25"], "ship": "free",
@@ -58,7 +61,8 @@ Each answer line names the item, unit price and quantity it priced. Commerce
 refuses the answer with `CONTENTION` when the cart no longer matches, and the
 store asks again.
 
-`ref` is present only with `hold`. Reasons: `not_found` (also a turned-off
+`ref` is present on a held answer. An empty code list with `hold: true`
+releases the cart's existing holds. Reasons: `not_found` (also a turned-off
 code, answered exactly the same way), `not_started`, `expired`, `minimum`,
 `no_items`, `used_up`, `used_by_you`, `not_combinable`, `needs_email` and
 `try_later`. `needs_email` comes only with `hold`: a one-use-per-shopper code is
