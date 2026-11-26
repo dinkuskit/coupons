@@ -3,15 +3,16 @@
 /** Whole cents: at most 1,000,000,000 (ten million dollars), as the add-ons door takes them. */
 export const MAX_CENTS = 1_000_000_000n;
 
-const DOLLARS = /^\$?\s*(\d{1,8})(?:\.(\d{1,2}))?$/;
+const DOLLARS = /^\$?\s*(\d{1,8}|\d{1,3}(?:,\d{3}){1,2})(?:\.(\d{1,2}))?$/;
 const DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 const ZONE = /^(?:UTC|[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)+)$/;
 
 /** Typed dollars, such as "12.50", "$1,200" or "5", as whole cents; null when it is not an amount. */
 export function cents(text: string): bigint | null {
-  const match = DOLLARS.exec(text.replaceAll(",", "").trim());
+  // Check grouping before removing commas, so a mistyped decimal like 0,25 doesn't become 25 dollars.
+  const match = DOLLARS.exec(text.trim());
   if (!match) return null;
-  const value = BigInt(match[1]!) * 100n + BigInt((match[2] ?? "").padEnd(2, "0"));
+  const value = BigInt(match[1]!.replaceAll(",", "")) * 100n + BigInt((match[2] ?? "").padEnd(2, "0"));
   return value <= MAX_CENTS ? value : null;
 }
 
