@@ -67,6 +67,36 @@ test("create a coupon from the form, see it listed, edit it and turn it off", as
   assert.equal(ctx.storage.coupons.rows.get(id).data.version, 3);
 });
 
+test("malformed dollar amounts don't create or change coupons", async () => {
+  const ctx = store();
+  const save = fields => plugin.routes["tools/save"].handler(owner(fields), ctx);
+  const fixed = { code: "TRAIL", discount: "order" };
+  const refused = valid(await submit(ctx, "create", { ...fixed, dollars: "0,25" }));
+  assert.match(text(refused), /Enter the dollars off/);
+  assert.equal(form(refused).fields.find(field => field.action_id === "dollars").initial_value, "0,25");
+  assert.equal(ctx.storage.coupons.rows.size, 0);
+
+  for (const dollars of ["12.5,0", "1,,200", "12,34.50", "10,000,000.01"]) {
+    assert.equal((await save({ ...fixed, dollars })).saved, false, dollars);
+  }
+  const made = await save({ ...fixed, discount: "each", dollars: "$1,200.50", minimum: "amount", minimumDollars: "10,000,000" });
+  assert.equal(made.saved, true);
+  const { id, version } = made.coupon;
+  const before = structuredClone(ctx.storage.coupons.rows.get(id).data);
+  assert.deepEqual([before.amount, before.minimum], [{ type: "each", cents: "120050" }, { type: "amount", cents: "1000000000" }]);
+
+  const edit = valid(await submit(ctx, `save:${version}:${id}`, { dollars: "12.5,0" }));
+  assert.match(text(edit), /Enter the dollars off/);
+  assert.match(text(await save({ id, version, minimumDollars: "1,50" })), /Enter the minimum order amount/);
+  assert.deepEqual(ctx.storage.coupons.rows.get(id).data, before);
+
+  const corrected = await save({ id, version, dollars: "12.5", minimumDollars: "1.50" });
+  assert.equal(corrected.saved, true);
+  assert.deepEqual([corrected.coupon.id, corrected.coupon.version], [id, version + 1]);
+  const after = ctx.storage.coupons.rows.get(id).data;
+  assert.deepEqual([after.amount, after.minimum], [{ type: "each", cents: "1250" }, { type: "amount", cents: "150" }]);
+});
+
 test("the store's time zone decides when a coupon's days start and end", async () => {
   const ctx = store();
   const saved = valid(await submit(ctx, "save_zone", { timeZone: "America/Los_Angeles" }));
